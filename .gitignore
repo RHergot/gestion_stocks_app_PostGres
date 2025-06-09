@@ -1,0 +1,29 @@
+# Fichiers d'environnement
+.env
+
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+venv/
+env/
+
+# Fichiers de configuration IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers de base de données
+*.sqlite3
+*.db
+
+# Fichiers de logs
+*.log
+
+# Fichiers de compilation
+build/
+dist/
+*.egg-info/
