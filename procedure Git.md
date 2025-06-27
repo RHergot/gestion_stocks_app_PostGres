@@ -1,4 +1,4 @@
-Le Workflow de Mise à Jour en 3 Actes
+ Workflow de Mise à Jour en 3 Actes
 Acte 1 : Le Développement (sur votre PC Windows)
 Vous travaillez comme d'habitude : Vous modifiez votre code, ajoutez des fonctionnalités, corrigez des bugs sur votre machine Windows avec votre éditeur.
 Vous testez localement : Vous utilisez python manage.py runserver et votre base de données db.sqlite3 pour vous assurer que tout fonctionne parfaitement. C'est votre bac à sable, vous pouvez tout y casser sans risque.
@@ -70,6 +70,48 @@ pip install -r requirements.txt
 Vérifier l'installation :
 bash
 pip list
+
+requirements linux !!!
+
+Je vois que vous rencontrez des problèmes avec l'installation des dépendances, principalement à cause de pywin32 qui est spécifique à Windows. Voici comment résoudre ce problème :
+
+D'abord, créons un fichier requirements_linux.txt avec les dépendances adaptées à Linux :
+bash
+# Dans le terminal, exécutez :
+cat > requirements_linux.txt << 'EOL'
+PySide6
+SQLAlchemy
+psycopg2-binary
+pytest
+python-dotenv
+python-dateutil>=2.8.2
+bcrypt>=4.0.0
+jinja2>=3.1.2
+# Remplacement de pdfkit par weasyprint qui est plus compatible avec Linux
+weasyprint
+# Autres dépendances spécifiques à Linux
+EOL
+Ensuite, installez les dépendances spécifiques à Linux :
+bash
+# Installation des dépendances système nécessaires
+sudo apt-get update
+sudo apt-get install -y python3-dev python3-pip python3-venv build-essential libpq-dev
+
+# Installation de wkhtmltopdf si vous en avez besoin pour weasyprint
+sudo apt-get install -y python3-cffi python3-brotli libpango-1.0-0 libpangoft2-1.0-0
+
+# Installation des dépendances Python
+pip install -r requirements_linux.txt
+Si vous avez besoin de fonctionnalités spécifiques à pdfkit, vous pouvez l'installer avec :
+bash
+sudo apt-get install -y wkhtmltopdf
+pip install pdfkit
+Pour vérifier que tout est installé correctement :
+bash
+pip list
+Voulez-vous que j'exécute ces commandes pour vous ? Je peux les exécuter une par une avec votre accord.
+
+Note : J'ai remplacé pdfkit par weasyprint qui est une alternative plus moderne et mieux maintenue sous Linux. Si vous avez absolument besoin de pdfkit, nous pouvons le configurer, mais cela nécessitera l'installation de wkhtmltopdf.
 
 Donner les droits rw répertoire au groupe users
 
