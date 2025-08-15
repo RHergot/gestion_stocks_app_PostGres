@@ -498,12 +498,12 @@ class CommandeView(QWidget):
             self.ligne_table.horizontalHeader().setStretchLastSection(True)
             return
             
-        print(f"[DEBUG] Chargement des lignes pour la commande ID: {commande_id}")
+        print(f"[DEBUG] Loading lines for order ID: {commande_id}")
         
         try:
             # Récupère les lignes de commande depuis le repository
             lignes = self.ligne_commande_repo.get_lignes_by_commande_id(commande_id)
-            print(f"[DEBUG] {len(lignes)} lignes récupérées pour la commande {commande_id}")
+            print(f"[DEBUG] {len(lignes)} lines retrieved for order {commande_id}")
             
             # Met à jour le modèle avec les nouvelles données
             self.ligne_model = LigneCommandeTableModel(lignes)
