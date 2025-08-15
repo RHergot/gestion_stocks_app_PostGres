@@ -22,20 +22,20 @@ from .ligne_commande_dialog import LigneCommandeDialog
 class CommandeTableModel(QAbstractTableModel):
     HEADER_LABELS = {
         "id_commande": "ID",
-        "numero_commande": "N° Commande",
-        "fournisseur_nom": "Fournisseur",
-        "createur_nom": "Créateur",
-        "date_commande": "Date commande",
-        "date_livraison_prevue": "Livraison prévue",
-        "date_livraison_reelle": "Livraison réelle",
-        "statut": "Statut",
-        "total_ht": "Total HT",
-        "frais_port": "Frais port",
-        "reference_fournisseur": "Réf. fournisseur",
-        "mode_paiement": "Mode paiement",
+        "numero_commande": "Order No.",
+        "fournisseur_nom": "Supplier",
+        "createur_nom": "Creator",
+        "date_commande": "Order date",
+        "date_livraison_prevue": "Planned delivery",
+        "date_livraison_reelle": "Actual delivery",
+        "statut": "Status",
+        "total_ht": "Total (excl. tax)",
+        "frais_port": "Shipping cost",
+        "reference_fournisseur": "Supplier ref.",
+        "mode_paiement": "Payment method",
         "notes_commande": "Notes",
-        "created_at": "Créé le",
-        "updated_at": "Modifié le"
+        "created_at": "Created at",
+        "updated_at": "Updated at"
     }
 
     def __init__(self, commandes):
@@ -45,16 +45,16 @@ class CommandeTableModel(QAbstractTableModel):
         # Utilise les clés de HEADER_LABELS pour garantir l'ordre et la présence de toutes les colonnes
         self.headers = list(self.HEADER_LABELS.keys())
         
-        # Log pour le débogage
+        # Debug log
         if not self.commandes:
-            print("[DEBUG] Aucune donnée fournie au modèle de commandes")
+            print("[DEBUG] No data provided to order model")
         elif not isinstance(self.commandes[0], dict):
-            print(f"[ERREUR] Les données doivent être des dictionnaires, reçu: {type(self.commandes[0])}")
+            print(f"[ERROR] Data must be dictionaries, got: {type(self.commandes[0])}")
         else:
-            print(f"[DEBUG] Modèle initialisé avec {len(self.commandes)} commandes")
-            print(f"[DEBUG] En-têtes du modèle: {self.headers}")
+            print(f"[DEBUG] Model initialized with {len(self.commandes)} orders")
+            print(f"[DEBUG] Model headers: {self.headers}")
             if self.commandes:
-                print(f"[DEBUG] Première commande clés: {list(self.commandes[0].keys())}")
+                print(f"[DEBUG] First order keys: {list(self.commandes[0].keys())}")
 
     def rowCount(self, parent=None):
         return len(self.commandes)
@@ -76,28 +76,28 @@ class CommandeTableModel(QAbstractTableModel):
             key = self.headers[col]
             commande = self.commandes[row]
             
-            # Log pour le débogage (uniquement pour la première cellule pour éviter la surcharge)
+            # Debug log (only once for first cell)
             if row == 0 and col == 0 and not hasattr(self, '_debug_shown'):
-                print(f"[DEBUG] Affichage de la première cellule. Clé: {key}, Valeur: {commande.get(key, 'N/A')}")
+                print(f"[DEBUG] Displaying first cell. Key: {key}, Value: {commande.get(key, 'N/A')}")
                 self._debug_shown = True
             
-            # Récupère la valeur brute
+            # Raw value
             value = commande.get(key, "")
             
-            # Formatage spécial pour les dates
+            # Special formatting for dates
             if key in ["date_commande", "date_livraison_prevue", "date_livraison_reelle", "created_at", "updated_at"] and value:
                 try:
                     from datetime import datetime
-                    # Essayer différents formats de date
+                    # Try multiple date formats
                     for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
                         try:
-                            dt = datetime.strptime(str(value).split('.')[0], fmt)  # Enlève les microsecondes
-                            # Formate en français : JJ/MM/AAAA
+                            dt = datetime.strptime(str(value).split('.')[0], fmt)  # Remove microseconds
+                            # Display as DD/MM/YYYY
                             return dt.strftime("%d/%m/%Y")
                         except ValueError:
                             continue
                 except (ValueError, TypeError) as e:
-                    print(f"[DEBUG] Erreur de formatage de la date {key}={value}: {str(e)}")
+                    print(f"[DEBUG] Date formatting error {key}={value}: {str(e)}")
             
             # Formatage des montants
             elif key in ["total_ht", "frais_port"] and value is not None:
@@ -108,7 +108,7 @@ class CommandeTableModel(QAbstractTableModel):
             
             # Pour les valeurs booléennes
             elif isinstance(value, bool):
-                return "Oui" if value else "Non"
+                return "Yes" if value else "No"
             
             # Pour les valeurs None, retourne une chaîne vide
             if value is None:
@@ -132,17 +132,17 @@ class CommandeTableModel(QAbstractTableModel):
 
 class LigneCommandeTableModel(QAbstractTableModel):
     HEADER_LABELS = {
-        "id_ligne": "ID Ligne",
-        "piece_reference": "Réf. pièce",
-        "piece_nom": "Nom pièce",
+        "id_ligne": "Line ID",
+        "piece_reference": "Part ref.",
+        "piece_nom": "Part name",
         "description_libre": "Description",
-        "quantite_commandee": "Qté commandée",
-        "prix_unitaire_ht": "PU HT",
-        "quantite_recue": "Qté reçue",
-        "date_reception": "Date réception",
-        "statut_ligne": "Statut",
-        "commande_id": "ID Commande",
-        "piece_id": "ID Pièce"
+        "quantite_commandee": "Qty ordered",
+        "prix_unitaire_ht": "Unit price (excl. tax)",
+        "quantite_recue": "Qty received",
+        "date_reception": "Reception date",
+        "statut_ligne": "Status",
+        "commande_id": "Order ID",
+        "piece_id": "Part ID"
     }
 
     def __init__(self, lignes):
@@ -152,14 +152,14 @@ class LigneCommandeTableModel(QAbstractTableModel):
         # Utilise les clés de HEADER_LABELS pour garantir l'ordre et la présence de toutes les colonnes
         self.headers = list(self.HEADER_LABELS.keys())
         
-        # Log pour le débogage
+        # Debug log
         if not self.lignes:
-            print("[DEBUG] Aucune donnée fournie au modèle de lignes de commande")
+            print("[DEBUG] No data provided to order lines model")
         elif not isinstance(self.lignes[0], dict):
-            print(f"[ERREUR] Les données des lignes doivent être des dictionnaires, reçu: {type(self.lignes[0])}")
+            print(f"[ERROR] Line data must be dictionaries, got: {type(self.lignes[0])}")
         elif self.lignes:
-            print(f"[DEBUG] Modèle de lignes initialisé avec {len(self.lignes)} lignes")
-            print(f"[DEBUG] Première ligne clés: {list(self.lignes[0].keys())}")
+            print(f"[DEBUG] Lines model initialized with {len(self.lignes)} rows")
+            print(f"[DEBUG] First line keys: {list(self.lignes[0].keys())}")
 
     def rowCount(self, parent=None):
         return len(self.lignes)
@@ -219,7 +219,7 @@ class CommandeView(QWidget):
     def __init__(self, commandes, db, parent=None):
         super().__init__(parent)
         self.db = db
-        self.setWindowTitle("Gestion des Commandes")
+        self.setWindowTitle("Orders Management")
         self.setMinimumSize(1200, 800)
         
         # Initialisation des repositories
@@ -233,40 +233,40 @@ class CommandeView(QWidget):
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
         
-        # Barre d'outils
-        self.toolbar = QToolBar("Outils")
+        # Toolbar
+        self.toolbar = QToolBar("Tools")
         
-        # Bouton Nouvelle commande
-        new_action = QAction(QIcon.fromTheme("document-new"), "Nouvelle commande", self)
+        # New order button
+        new_action = QAction(QIcon.fromTheme("document-new"), "New order", self)
         new_action.triggered.connect(self.nouvelle_commande)
         self.toolbar.addAction(new_action)
         
-        # Bouton Modifier
-        self.edit_action = QAction(QIcon.fromTheme("document-edit"), "Modifier", self)
+        # Edit button
+        self.edit_action = QAction(QIcon.fromTheme("document-edit"), "Edit", self)
         self.edit_action.triggered.connect(self.editer_commande)
         self.edit_action.setEnabled(False)
         self.toolbar.addAction(self.edit_action)
         
-        # Bouton Supprimer
-        self.delete_action = QAction(QIcon.fromTheme("edit-delete"), "Supprimer", self)
+        # Delete button
+        self.delete_action = QAction(QIcon.fromTheme("edit-delete"), "Delete", self)
         self.delete_action.triggered.connect(self.supprimer_commande)
         self.delete_action.setEnabled(False)
         self.toolbar.addAction(self.delete_action)
         
         self.toolbar.addSeparator()
         
-        # Bouton Filtrer
-        filter_action = QAction(QIcon.fromTheme("view-filter"), "Filtrer", self)
+        # Filter button
+        filter_action = QAction(QIcon.fromTheme("view-filter"), "Filter", self)
         filter_action.triggered.connect(self.show_filter_dialog)
         self.toolbar.addAction(filter_action)
         
-        # Bouton Exporter
-        export_action = QAction(QIcon.fromTheme("document-export"), "Exporter", self)
+        # Export button
+        export_action = QAction(QIcon.fromTheme("document-export"), "Export", self)
         export_action.triggered.connect(self.export_data)
         self.toolbar.addAction(export_action)
         
-        # Bouton Rafraîchir
-        refresh_action = QAction(QIcon.fromTheme("view-refresh"), "Rafraîchir", self)
+        # Refresh button
+        refresh_action = QAction(QIcon.fromTheme("view-refresh"), "Refresh", self)
         refresh_action.triggered.connect(self.refresh_data)
         self.toolbar.addAction(refresh_action)
         
@@ -344,7 +344,7 @@ class CommandeView(QWidget):
         self.table.setSelectionMode(QTableView.SingleSelection)
         
         # Ajout du tableau au layout avec un facteur d'étirement
-        main_layout.addWidget(QLabel("<b>Liste des commandes :</b>"))
+        main_layout.addWidget(QLabel("<b>Orders list:</b>"))
         main_layout.addWidget(self.table, 1)  # Le facteur 1 permet l'étirement
 
         # Section des boutons de gestion des commandes
@@ -356,7 +356,7 @@ class CommandeView(QWidget):
         lignes_layout.setContentsMargins(0, 0, 0, 0)
         
         # Titre du groupe
-        title_label = QLabel("<b>Lignes de la commande sélectionnée :</b>")
+        title_label = QLabel("<b>Lines of the selected order:</b>")
         lignes_layout.addWidget(title_label)
         
         # Création du tableau
@@ -437,7 +437,7 @@ class CommandeView(QWidget):
     def create_status_buttons_section(self, main_layout):
         """Crée la section des boutons de gestion des statuts de commande"""
         # Label pour la section
-        status_label = QLabel("<b>Actions sur la commande sélectionnée :</b>")
+        status_label = QLabel("<b>Actions on the selected order:</b>")
         main_layout.addWidget(status_label)
         
         # Widget conteneur pour les boutons
@@ -445,25 +445,25 @@ class CommandeView(QWidget):
         status_layout = QHBoxLayout(status_widget)
         status_layout.setContentsMargins(0, 5, 0, 5)
         
-        # Boutons de gestion des statuts
-        self.confirmer_btn = QPushButton("Confirmer")
-        self.confirmer_btn.setToolTip("Passer de Brouillon à Validée")
+        # Status management buttons
+        self.confirmer_btn = QPushButton("Confirm")
+        self.confirmer_btn.setToolTip("Move from 'Brouillon' to 'Validee'")
         self.confirmer_btn.clicked.connect(self.confirmer_commande_selectionnee)
         
-        self.envoyer_btn = QPushButton("Envoyer")
-        self.envoyer_btn.setToolTip("Passer de Validée à Envoyée")
+        self.envoyer_btn = QPushButton("Send")
+        self.envoyer_btn.setToolTip("Move from 'Validee' to 'Envoyee'")
         self.envoyer_btn.clicked.connect(self.envoyer_commande_selectionnee)
         
-        self.livrer_btn = QPushButton("Livrer")
-        self.livrer_btn.setToolTip("Passer d'Envoyée à Livrée et créer les mouvements de stock")
+        self.livrer_btn = QPushButton("Deliver")
+        self.livrer_btn.setToolTip("Move from 'Envoyee' to 'Livree' and create stock movements")
         self.livrer_btn.clicked.connect(self.livrer_commande_selectionnee)
         
-        self.copier_btn = QPushButton("Copier")
-        self.copier_btn.setToolTip("Créer une nouvelle commande avec les mêmes lignes")
+        self.copier_btn = QPushButton("Copy")
+        self.copier_btn.setToolTip("Create a new order with the same lines")
         self.copier_btn.clicked.connect(self.copier_commande_selectionnee)
         
-        self.annuler_commande_btn = QPushButton("Annuler commande")
-        self.annuler_commande_btn.setToolTip("Annuler la commande (devient inaccessible)")
+        self.annuler_commande_btn = QPushButton("Cancel order")
+        self.annuler_commande_btn.setToolTip("Cancel the order (becomes inaccessible)")
         self.annuler_commande_btn.setStyleSheet("QPushButton { background-color: #ff6b6b; color: white; }")
         self.annuler_commande_btn.clicked.connect(self.annuler_commande_selectionnee)
         
@@ -484,7 +484,7 @@ class CommandeView(QWidget):
     def update_lignes_commande(self):
         """Met à jour le tableau des lignes de commande pour la commande sélectionnée."""
         if not hasattr(self, 'db') or not self.db:
-            print("[ERREUR] Aucune connexion à la base de données")
+            print("[ERROR] No database connection")
             return
             
         # Récupère l'ID de la commande sélectionnée
@@ -534,10 +534,10 @@ class CommandeView(QWidget):
             self.ligne_table.viewport().update()
             
         except Exception as e:
-            print(f"[ERREUR] Impossible de charger les lignes de commande: {str(e)}")
-            # Affiche un message d'erreur à l'utilisateur
-            QMessageBox.critical(self, "Erreur", 
-                f"Impossible de charger les lignes de commande :\n{str(e)}")
+            print(f"[ERROR] Unable to load order lines: {str(e)}")
+            # Show an error message to the user
+            QMessageBox.critical(self, "Error", 
+                f"Unable to load order lines:\n{str(e)}")
             
             # Affiche un tableau vide en cas d'erreur
             self.ligne_model = LigneCommandeTableModel([])
@@ -545,13 +545,13 @@ class CommandeView(QWidget):
             
     def refresh_data(self):
         """Rafraîchit les données depuis la base de données."""
-        print("[DEBUG] Méthode refresh_data appelée")
+        print("[DEBUG] refresh_data method called")
         
         if not hasattr(self, 'db') or not self.db:
-            print("[ERREUR] Impossible de rafraîchir : pas de connexion à la base de données")
+            print("[ERROR] Cannot refresh: no database connection")
             return False
             
-        print("[DEBUG] Rafraîchissement des données...")
+        print("[DEBUG] Refreshing data...")
         
         try:
             # Réimporte le service pour éviter les problèmes de rechargement
@@ -561,10 +561,10 @@ class CommandeView(QWidget):
             updated_commandes = get_all_commandes_clean(self.db)
             
             if updated_commandes is None:
-                print("[ERREUR] Aucune donnée reçue lors du rafraîchissement")
+                print("[ERROR] No data received during refresh")
                 return False
                 
-            print(f"[DEBUG] {len(updated_commandes)} commandes chargées")
+            print(f"[DEBUG] {len(updated_commandes)} orders loaded")
             
             # Sauvegarde la position de défilement actuelle
             scroll_position = self.table.verticalScrollBar().value()
@@ -593,14 +593,14 @@ class CommandeView(QWidget):
                 self.ligne_model = LigneCommandeTableModel([])
                 self.ligne_table.setModel(self.ligne_model)
             
-            print("[DEBUG] Données rafraîchies avec succès")
+            print("[DEBUG] Data refreshed successfully")
             return True
             
         except Exception as e:
-            print(f"[ERREUR] Échec du rafraîchissement des données : {str(e)}")
+            print(f"[ERROR] Failed to refresh data: {str(e)}")
             from PySide6.QtWidgets import QMessageBox
-            QMessageBox.critical(self, "Erreur", 
-                f"Impossible de rafraîchir les données :\n{str(e)}")
+            QMessageBox.critical(self, "Error", 
+                f"Unable to refresh data:\n{str(e)}")
             return False
             
     def on_selection_changed(self):
@@ -644,7 +644,7 @@ class CommandeView(QWidget):
                 
                 # Vérifier que l'ID de l'utilisateur est valide
                 if not createur_id:
-                    raise ValueError("Impossible de déterminer l'utilisateur pour la création de la commande")
+                    raise ValueError("Unable to determine the user for order creation")
                 
                 # Ajouter l'ID du créateur aux données
                 data['createur_id'] = createur_id
@@ -674,17 +674,17 @@ class CommandeView(QWidget):
                 # Sélectionner la nouvelle commande
                 self.select_commande(commande_id)
                 
-                QMessageBox.information(self, "Succès", "La commande a été créée avec succès.")
+                QMessageBox.information(self, "Success", "The order has been created successfully.")
                 
             except Exception as e:
                 QMessageBox.critical(
                     self, 
-                    "Erreur", 
-                    f"Une erreur est survenue lors de la création de la commande :\n{str(e)}"
+                    "Error", 
+                    f"An error occurred while creating the order:\n{str(e)}"
                 )
-                # Afficher la trace complète pour le débogage
+                # Show full traceback for debugging
                 import traceback
-                print(f"Erreur complète: {traceback.format_exc()}")
+                print(f"Full error: {traceback.format_exc()}")
     
     def editer_commande(self):
         """Ouvre la boîte de dialogue pour modifier la commande sélectionnée"""
@@ -696,7 +696,7 @@ class CommandeView(QWidget):
             # Récupérer les données de la commande
             commande = self.commande_repo.get_commande_by_id(commande_id)
             if not commande:
-                QMessageBox.warning(self, "Erreur", "Commande introuvable.")
+                QMessageBox.warning(self, "Error", "Order not found.")
                 return
                 
             # Récupérer les lignes de commande
@@ -739,11 +739,11 @@ class CommandeView(QWidget):
                 # Resélectionner la commande
                 self.select_commande(commande_id)
                 
-                QMessageBox.information(self, "Succès", "La commande a été mise à jour avec succès.")
+                QMessageBox.information(self, "Success", "Order updated successfully.")
                 
         except Exception as e:
-            QMessageBox.critical(self, "Erreur", 
-                f"Une erreur est survenue lors de la modification de la commande :\n{str(e)}")
+            QMessageBox.critical(self, "Error", 
+                f"An error occurred while editing the order:\n{str(e)}")
     
     def supprimer_commande(self):
         """Supprime la commande sélectionnée après confirmation"""
@@ -751,33 +751,33 @@ class CommandeView(QWidget):
         if not commande_id:
             return
             
-        # Demander confirmation
+        # Ask for confirmation
         reply = QMessageBox.question(
             self, 
-            'Confirmer la suppression',
-            'Êtes-vous sûr de vouloir supprimer cette commande ?\nCette action supprimera également toutes les lignes de commande associées.',
+            'Confirm deletion',
+            'Are you sure you want to delete this order?\nThis will also delete all associated order lines.',
             QMessageBox.Yes | QMessageBox.No, 
             QMessageBox.No
         )
         
         if reply == QMessageBox.Yes:
             try:
-                # Supprimer la commande (et ses lignes via CASCADE ou logique dans le repository)
+                # Delete the order (and its lines via CASCADE or logic in the repository)
                 success = self.commande_repo.delete_commande(commande_id)
                 
                 if success:
-                    # Rafraîchir l'affichage
+                    # Refresh display
                     self.refresh_data()
-                    QMessageBox.information(self, "Succès", "La commande et ses lignes ont été supprimées avec succès.")
+                    QMessageBox.information(self, "Success", "The order and its lines have been successfully deleted.")
                 else:
-                    QMessageBox.warning(self, "Avertissement", "La commande n'a pas pu être trouvée ou supprimée.")
+                    QMessageBox.warning(self, "Warning", "The order could not be found or deleted.")
                 
             except Exception as e:
-                QMessageBox.critical(self, "Erreur", 
-                    f"Une erreur est survenue lors de la suppression de la commande :\n{str(e)}")
+                QMessageBox.critical(self, "Error", 
+                    f"An error occurred while deleting the order:\n{str(e)}")
     
     def select_commande(self, commande_id):
-        """Sélectionne une commande dans le tableau"""
+        """Selects an order in the table"""
         if not commande_id:
             return
             
@@ -789,17 +789,17 @@ class CommandeView(QWidget):
                 break
     
     def show_filter_dialog(self):
-        """Affiche la boîte de dialogue de filtrage"""
-        QMessageBox.information(self, "Filtres", "Fonctionnalité de filtrage à implémenter.")
+        """Displays the filter dialog"""
+        QMessageBox.information(self, "Filters", "Filtering functionality to be implemented.")
     
     def export_data(self):
-        """Exporte les données au format CSV ou Excel"""
-        QMessageBox.information(self, "Exporter", "Fonctionnalité d'export à implémenter.")
+        """Exports data to CSV or Excel"""
+        QMessageBox.information(self, "Export", "Export functionality to be implemented.")
     
-    # === Méthodes pour la gestion des statuts de commande ===
+    # === Methods for order status management ===
     
     def get_selected_commande_data(self):
-        """Récupère les données complètes de la commande sélectionnée"""
+        """Gets the complete data of the selected order"""
         commande_id = self.get_selected_commande_id()
         if not commande_id:
             return None
@@ -807,30 +807,30 @@ class CommandeView(QWidget):
         try:
             return self.commande_repo.get_commande_by_id(commande_id)
         except Exception as e:
-            print(f"[ERREUR] Impossible de récupérer la commande {commande_id}: {e}")
+            print(f"[ERROR] Unable to retrieve order {commande_id}: {e}")
             return None
     
     def update_status_buttons_state(self):
-        """Met à jour l'état des boutons selon le statut de la commande sélectionnée"""
-        # Vérifier que les boutons existent
+        """Updates the status buttons based on the selected order's status"""
+        # Check that the buttons exist
         if not hasattr(self, 'confirmer_btn'):
             return
         
-        # Désactiver tous les boutons par défaut
+        # Disable all buttons by default
         self.confirmer_btn.setEnabled(False)
         self.envoyer_btn.setEnabled(False)
         self.livrer_btn.setEnabled(False)
         self.copier_btn.setEnabled(False)
         self.annuler_commande_btn.setEnabled(False)
         
-        # Récupérer la commande sélectionnée
+        # Get the selected order
         commande = self.get_selected_commande_data()
         if not commande:
             return
         
         statut = commande.get('statut', '')
         
-        # Activer les boutons selon le statut
+        # Enable buttons based on status
         if statut == 'Brouillon':
             self.confirmer_btn.setEnabled(True)
             self.copier_btn.setEnabled(True)
@@ -844,103 +844,103 @@ class CommandeView(QWidget):
             self.copier_btn.setEnabled(True)
             self.annuler_commande_btn.setEnabled(True)
         elif statut == 'Partielle':
-            # Commande partiellement livrée, peut continuer la réception
+            # Partially delivered order, can continue receiving
             self.livrer_btn.setEnabled(True)
             self.copier_btn.setEnabled(True)
             self.annuler_commande_btn.setEnabled(True)
         elif statut == 'Livree':
-            # Commande terminée, seule la copie est possible
+            # Delivered order, only copying is possible
             self.copier_btn.setEnabled(True)
         elif statut == 'Annulee':
-            # Commande annulée, seule la copie est possible
+            # Canceled order, only copying is possible
             self.copier_btn.setEnabled(True)
         else:
-            # Statut inconnu, activer seulement la copie
+            # Unknown status, only copying is possible
             self.copier_btn.setEnabled(True)
     
     def confirmer_commande_selectionnee(self):
-        """Confirme la commande sélectionnée (Brouillon → Validée)"""
+        """Confirms the selected order (Brouillon → Validée)"""
         commande = self.get_selected_commande_data()
         if not commande:
-            QMessageBox.warning(self, "Erreur", "Aucune commande sélectionnée.")
+            QMessageBox.warning(self, "Error", "No order selected.")
             return
         
         if commande['statut'] != 'Brouillon':
-            QMessageBox.warning(self, "Erreur", "Seules les commandes en statut 'Brouillon' peuvent être confirmées.")
+            QMessageBox.warning(self, "Error", "Only orders with status 'Brouillon' can be confirmed.")
             return
         
         if self._changer_statut_commande(commande['id_commande'], 'Validee'):
-            QMessageBox.information(self, "Succès", f"Commande {commande['numero_commande']} confirmée avec succès.")
+            QMessageBox.information(self, "Success", f"Order {commande['numero_commande']} successfully confirmed.")
             self.refresh_data()
     
     def envoyer_commande_selectionnee(self):
-        """Envoie la commande sélectionnée (Validée → Envoyée)"""
+        """Sends the selected order (Validée → Envoyée)"""
         commande = self.get_selected_commande_data()
         if not commande:
-            QMessageBox.warning(self, "Erreur", "Aucune commande sélectionnée.")
+            QMessageBox.warning(self, "Error", "No order selected.")
             return
         
         if commande['statut'] != 'Validee':
-            QMessageBox.warning(self, "Erreur", "Seules les commandes en statut 'Validée' peuvent être envoyées.")
+            QMessageBox.warning(self, "Error", "Only orders with status 'Validee' can be sent.")
             return
         
         if self._changer_statut_commande(commande['id_commande'], 'Envoyee'):
-            QMessageBox.information(self, "Succès", f"Commande {commande['numero_commande']} envoyée au fournisseur.")
+            QMessageBox.information(self, "Success", f"Order {commande['numero_commande']} sent to the supplier.")
             self.refresh_data()
     
     def livrer_commande_selectionnee(self):
-        """Ouvre le dialog de réception pour traiter la livraison détaillée"""
+        """Opens the delivery dialog to process the detailed delivery"""
         commande = self.get_selected_commande_data()
         if not commande:
-            QMessageBox.warning(self, "Erreur", "Aucune commande sélectionnée.")
+            QMessageBox.warning(self, "Error", "No order selected.")
             return
         
         if commande['statut'] not in ['Envoyee', 'Partielle']:
-            QMessageBox.warning(self, "Erreur", "Seules les commandes en statut 'Envoyée' ou 'Partielle' peuvent être réceptionnées.")
+            QMessageBox.warning(self, "Error", "Only orders with status 'Envoyee' or 'Partielle' can be received.")
             return
         
         try:
-            # Ouvrir le dialog de réception
+            # Open the delivery dialog
             from .reception_dialog import ReceptionDialog
             
             dialog = ReceptionDialog(self.db, commande, self)
             
             if dialog.exec() == QDialog.Accepted:
-                # Récupérer le résumé de la réception
+                # Get the delivery summary
                 summary = dialog.get_reception_summary()
                 
                 QMessageBox.information(
                     self, 
-                    "Réception terminée", 
-                    f"Réception de la commande {commande['numero_commande']} terminée avec succès.\n\n"
-                    f"• Lignes traitées : {summary['lignes_traitees']}\n"
-                    f"• Total pièces : {summary['total_pieces']}\n"
-                    f"• Pièces en bon état : {summary['pieces_bon_etat']}\n"
-                    f"• Pièces défectueuses : {summary['pieces_defectueuses']}\n\n"
-                    "Les mouvements de stock ont été créés automatiquement."
+                    "Reception completed", 
+                    f"Reception of order {commande['numero_commande']} completed successfully.\n\n"
+                    f"• Lines processed: {summary['lignes_traitees']}\n"
+                    f"• Total items: {summary['total_pieces']}\n"
+                    f"• Items in good condition: {summary['pieces_bon_etat']}\n"
+                    f"• Defective items: {summary['pieces_defectueuses']}\n\n"
+                    "Stock movements were created automatically."
                 )
                 
-                # Rafraîchir la vue
+                # Refresh the view
                 self.refresh_data()
                 
         except Exception as e:
             QMessageBox.critical(
                 self, 
-                "Erreur", 
-                f"Erreur lors de l'ouverture du dialog de réception :\n{str(e)}"
+                "Error", 
+                f"Error while opening the delivery dialog:\n{str(e)}"
             )
     
     def copier_commande_selectionnee(self):
-        """Copie la commande sélectionnée"""
+        """Copies the selected order"""
         commande = self.get_selected_commande_data()
         if not commande:
-            QMessageBox.warning(self, "Erreur", "Aucune commande sélectionnée.")
+            QMessageBox.warning(self, "Error", "No order selected.")
             return
         
         reply = QMessageBox.question(
             self, 
-            "Copier la commande", 
-            f"Voulez-vous créer une nouvelle commande basée sur la commande {commande['numero_commande']} ?",
+            "Copy order", 
+            f"Do you want to create a new order based on order {commande['numero_commande']}?",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -950,66 +950,66 @@ class CommandeView(QWidget):
                 self._creer_copie_commande(commande)
                 QMessageBox.information(
                     self, 
-                    "Succès", 
-                    "Nouvelle commande créée avec succès."
+                    "Success", 
+                    "New order created successfully."
                 )
                 self.refresh_data()
             except Exception as e:
                 QMessageBox.critical(
                     self, 
-                    "Erreur", 
-                    f"Erreur lors de la copie de la commande :\n{str(e)}"
+                    "Error", 
+                    f"Error while copying the order:\n{str(e)}"
                 )
     
     def annuler_commande_selectionnee(self):
-        """Annule la commande sélectionnée"""
+        """Cancels the selected order"""
         commande = self.get_selected_commande_data()
         if not commande:
-            QMessageBox.warning(self, "Erreur", "Aucune commande sélectionnée.")
+            QMessageBox.warning(self, "Error", "No order selected.")
             return
         
         if commande['statut'] in ['Livree', 'Annulee']:
-            QMessageBox.warning(self, "Erreur", "Cette commande ne peut pas être annulée.")
+            QMessageBox.warning(self, "Error", "This order cannot be canceled.")
             return
         
         reply = QMessageBox.question(
             self, 
-            "Annuler la commande", 
-            f"Êtes-vous sûr de vouloir annuler la commande {commande['numero_commande']} ?\n"
-            "Cette action est irréversible.",
+            "Cancel order", 
+            f"Are you sure you want to cancel order {commande['numero_commande']}?\n"
+            "This action is irreversible.",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
         
         if reply == QMessageBox.Yes:
             if self._changer_statut_commande(commande['id_commande'], 'Annulee'):
-                QMessageBox.information(self, "Succès", f"Commande {commande['numero_commande']} annulée.")
+                QMessageBox.information(self, "Success", f"Order {commande['numero_commande']} canceled.")
                 self.refresh_data()
     
     def _changer_statut_commande(self, commande_id, nouveau_statut, with_delivery_date=False):
-        """Change le statut d'une commande dans la base de données"""
+        """Changes the status of an order in the database"""
         try:
-            # Préparer les données de mise à jour
+            # Prepare the update data
             update_data = {'statut': nouveau_statut}
             if with_delivery_date and nouveau_statut == 'Livree':
                 from datetime import datetime
                 update_data['date_livraison_reelle'] = datetime.now().strftime('%Y-%m-%d')
             
-            # Effectuer la mise à jour
+            # Perform the update
             success = self.commande_repo.update_commande(commande_id, update_data)
             
             if not success:
-                QMessageBox.warning(self, "Erreur", "Impossible de changer le statut de la commande.")
+                QMessageBox.warning(self, "Error", "Unable to change the order status.")
                 return False
             
             return True
             
         except Exception as e:
-            QMessageBox.critical(self, "Erreur", f"Erreur lors du changement de statut :\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Error while changing status:\n{str(e)}")
             return False
     
     def _creer_mouvements_livraison(self, commande):
-        """Crée les mouvements de stock pour la livraison de la commande"""
+        """Creates stock movements for the delivery of the order"""
         try:
             from APP.services.mouvement_service import MouvementService
             
@@ -1038,10 +1038,10 @@ class CommandeView(QWidget):
                 )
                 mouvements_crees += 1
             
-            print(f"[INFO] {mouvements_crees} mouvements de stock créés pour la commande {commande['numero_commande']}")
+            print(f"[INFO] {mouvements_crees} stock movements created for order {commande['numero_commande']}")
             
         except Exception as e:
-            print(f"[ERREUR] Erreur lors de la création des mouvements : {str(e)}")
+            print(f"[ERROR] Error while creating stock movements: {str(e)}")
             raise
     
     def _creer_copie_commande(self, commande_originale):
@@ -1062,13 +1062,13 @@ class CommandeView(QWidget):
                 'frais_port': commande_originale.get('frais_port', 0),
                 'reference_fournisseur': commande_originale.get('reference_fournisseur'),
                 'mode_paiement': commande_originale.get('mode_paiement'),
-                'notes_commande': f"Copie de la commande {commande_originale['numero_commande']}"
+                'notes_commande': f"Copy of order {commande_originale['numero_commande']}"
             }
             
             # Créer la nouvelle commande
             nouvelle_commande_id = self.commande_repo.add_commande(nouvelle_commande_data)
             
-            # Récupérer et copier les lignes de commande
+            # Retrieve and copy order lines
             lignes_originales = self.ligne_commande_repo.get_lignes_by_commande_id(commande_originale['id_commande'])
             
             for ligne in lignes_originales:
@@ -1081,10 +1081,10 @@ class CommandeView(QWidget):
                 }
                 self.ligne_commande_repo.add_ligne_commande(nouvelle_ligne_data)
             
-            print(f"[INFO] Nouvelle commande créée avec l'ID {nouvelle_commande_id} et le numéro {nouveau_numero}")
+            print(f"[INFO] New order created with ID {nouvelle_commande_id} and number {nouveau_numero}")
             
         except Exception as e:
-            print(f"[ERREUR] Erreur lors de la copie : {str(e)}")
+            print(f"[ERROR] Error while copying order: {str(e)}")
             raise
     
     def _generer_nouveau_numero(self):
