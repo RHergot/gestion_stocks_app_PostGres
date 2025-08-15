@@ -13,7 +13,7 @@ class ReceptionDialog(QDialog):
         super().__init__(parent)
         self.db = db
         self.commande_data = commande_data
-        self.setWindowTitle(f"Réception Commande #{commande_data['numero_commande']}")
+        self.setWindowTitle(f"Order Reception #{commande_data['numero_commande']}")
         self.setMinimumWidth(1000)
         self.setMinimumHeight(600)
         
@@ -27,43 +27,43 @@ class ReceptionDialog(QDialog):
         layout = QVBoxLayout()
         
         # Informations de la commande
-        info_group = QGroupBox("Informations de la commande")
+        info_group = QGroupBox("Order information")
         info_layout = QFormLayout()
         
-        info_layout.addRow("Numéro:", QLabel(self.commande_data['numero_commande']))
-        info_layout.addRow("Fournisseur:", QLabel(self.commande_data.get('fournisseur_nom', 'N/A')))
-        info_layout.addRow("Date commande:", QLabel(self.commande_data.get('date_commande', 'N/A')))
-        info_layout.addRow("Statut actuel:", QLabel(self.commande_data.get('statut', 'N/A')))
+        info_layout.addRow("Number:", QLabel(self.commande_data['numero_commande']))
+        info_layout.addRow("Supplier:", QLabel(self.commande_data.get('fournisseur_nom', 'N/A')))
+        info_layout.addRow("Order date:", QLabel(self.commande_data.get('date_commande', 'N/A')))
+        info_layout.addRow("Current status:", QLabel(self.commande_data.get('statut', 'N/A')))
         
         info_group.setLayout(info_layout)
         layout.addWidget(info_group)
         
         # Instructions
         instructions = QLabel(
-            "<b>Instructions :</b><br>"
-            "• Saisissez la quantité reçue pour chaque ligne<br>"
-            "• Cochez 'Bon état' si les pièces sont conformes<br>"
-            "• Les pièces défectueuses seront placées en retour fournisseur<br>"
-            "• Vous pouvez ajouter des commentaires pour chaque ligne"
+            "<b>Instructions:</b><br>"
+            "• Enter the received quantity for each line<br>"
+            "• Check 'Good condition' if the parts are compliant<br>"
+            "• Defective parts will be returned to supplier<br>"
+            "• You can add comments for each line"
         )
         instructions.setStyleSheet("QLabel { background-color: #f0f8ff; padding: 10px; border: 1px solid #ccc; }")
         layout.addWidget(instructions)
         
         # Tableau de réception
-        reception_group = QGroupBox("Lignes à réceptionner")
+        reception_group = QGroupBox("Lines to receive")
         reception_layout = QVBoxLayout()
         
         self.reception_table = QTableWidget()
         self.reception_table.setColumnCount(8)
         self.reception_table.setHorizontalHeaderLabels([
-            "Pièce", 
-            "Désignation", 
-            "Qté Commandée", 
-            "Qté Déjà Reçue",
-            "Qté à Réceptionner", 
-            "Bon État", 
-            "Commentaire",
-            "Statut"
+            "Part",
+            "Designation",
+            "Qty Ordered",
+            "Qty Already Received",
+            "Qty to Receive",
+            "Good Condition",
+            "Comment",
+            "Status"
         ])
         
         # Configuration du tableau
@@ -165,7 +165,7 @@ class ReceptionDialog(QDialog):
                 
                 # Colonne 6: Commentaire
                 commentaire_edit = QLineEdit()
-                commentaire_edit.setPlaceholderText("Commentaire optionnel...")
+                commentaire_edit.setPlaceholderText("Optional comment...")
                 commentaire_edit.textChanged.connect(lambda text, lid=ligne_id: self.update_reception_data(lid, 'commentaire', text))
                 self.reception_table.setCellWidget(row, 6, commentaire_edit)
                 
@@ -181,7 +181,7 @@ class ReceptionDialog(QDialog):
             self.update_summary()
             
         except Exception as e:
-            QMessageBox.critical(self, "Erreur", f"Impossible de charger les lignes de commande :\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Unable to load order lines:\n{str(e)}")
     
     def update_reception_data(self, ligne_id, field, value):
         """Met à jour les données de réception pour une ligne"""
@@ -204,11 +204,11 @@ class ReceptionDialog(QDialog):
         pieces_defectueuses = total_pieces_a_receptionner - pieces_bon_etat
         
         summary_text = f"""
-        <b>Résumé de la réception :</b><br>
-        • Lignes à traiter : {lignes_avec_reception}/{total_lignes}<br>
-        • Total pièces à réceptionner : {total_pieces_a_receptionner}<br>
-        • Pièces en bon état : {pieces_bon_etat}<br>
-        • Pièces défectueuses : {pieces_defectueuses}
+        <b>Reception summary:</b><br>
+        • Lines to process: {lignes_avec_reception}/{total_lignes}<br>
+        • Total parts to receive: {total_pieces_a_receptionner}<br>
+        • Parts in good condition: {pieces_bon_etat}<br>
+        • Defective parts: {pieces_defectueuses}
         """
         
         self.summary_label.setText(summary_text)
@@ -220,15 +220,15 @@ class ReceptionDialog(QDialog):
             lignes_a_traiter = [data for data in self.reception_data.values() if data['quantite_a_receptionner'] > 0]
             
             if not lignes_a_traiter:
-                QMessageBox.warning(self, "Aucune réception", "Aucune quantité à réceptionner n'a été saisie.")
+                QMessageBox.warning(self, "No reception", "No quantity to receive has been entered.")
                 return
             
             # Demander confirmation
             reply = QMessageBox.question(
                 self,
-                "Confirmer la réception",
-                f"Confirmer la réception de {len(lignes_a_traiter)} ligne(s) ?\n"
-                "Cette action créera les mouvements de stock correspondants.",
+                "Confirm reception",
+                f"Confirm the reception of {len(lignes_a_traiter)} line(s)?\n"
+                "This action will create the corresponding stock movements.",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
             )
@@ -238,7 +238,7 @@ class ReceptionDialog(QDialog):
                 self.accept()
                 
         except Exception as e:
-            QMessageBox.critical(self, "Erreur", f"Erreur lors de la validation :\n{str(e)}")
+            QMessageBox.critical(self, "Error", f"Error during validation:\n{str(e)}")
     
     def process_reception(self):
         """Traite la réception : met à jour la base de données et crée les mouvements"""
@@ -255,7 +255,7 @@ class ReceptionDialog(QDialog):
             type_retour_fournisseur = next((t for t in types_mouvement if t['nom'] == 'SORTIE_RETOUR_FOURNISSEUR'), None)
             
             if not type_entree_achat:
-                raise ValueError("Type de mouvement ENTREE_ACHAT non trouvé")
+                raise ValueError("Movement type ENTREE_ACHAT not found")
             
             # Récupérer l'emplacement pour les pièces défectueuses
             emplacement_defectueux = self.get_emplacement_defectueux()
@@ -297,7 +297,7 @@ class ReceptionDialog(QDialog):
                         quantite=quantite,
                         type_mouvement_id=type_entree_achat['id'],
                         reference_document=f"CMD-{self.commande_data['numero_commande']}",
-                        commentaire=f"Réception commande {self.commande_data['numero_commande']} - {commentaire}",
+                        commentaire=f"Order reception {self.commande_data['numero_commande']} - {commentaire}",
                         cout_unitaire=ligne_data.get('prix_unitaire_ht')
                     )
                     mouvements_crees += 1
@@ -310,17 +310,17 @@ class ReceptionDialog(QDialog):
                             type_mouvement_id=type_retour_fournisseur['id'],
                             emplacement_source_id=emplacement_defectueux,
                             reference_document=f"CMD-{self.commande_data['numero_commande']}-DEF",
-                            commentaire=f"Retour pièces défectueuses - {commentaire}"
+                            commentaire=f"Return defective parts - {commentaire}"
                         )
                         mouvements_crees += 1
             
             # Mettre à jour le statut de la commande
             self.update_commande_status()
             
-            print(f"[INFO] Réception traitée: {mouvements_crees} mouvements créés")
+            print(f"[INFO] Reception processed: {mouvements_crees} movements created")
             
         except Exception as e:
-            print(f"[ERREUR] Erreur lors du traitement de la réception: {e}")
+            print(f"[ERROR] Error while processing reception: {e}")
             raise
     
     def create_reception_detail(self, ligne_id, quantite_recue, quantite_defectueuse, commentaire):
@@ -335,7 +335,7 @@ class ReceptionDialog(QDialog):
                 """, (ligne_id, quantite_recue, quantite_defectueuse, 1, commentaire))  # TODO: récupérer l'utilisateur actuel
                 self.db.conn.commit()
         except Exception as e:
-            print(f"[ERREUR] Impossible de créer l'historique de réception: {e}")
+            print(f"[ERROR] Unable to create reception history: {e}")
     
     def get_emplacement_defectueux(self):
         """Récupère l'ID de l'emplacement pour les pièces défectueuses"""
@@ -345,7 +345,7 @@ class ReceptionDialog(QDialog):
                 result = cur.fetchone()
                 return result[0] if result else None
         except Exception as e:
-            print(f"[ERREUR] Impossible de récupérer l'emplacement défectueux: {e}")
+            print(f"[ERROR] Unable to retrieve defective location: {e}")
             return None
     
     def update_commande_status(self):
@@ -390,10 +390,10 @@ class ReceptionDialog(QDialog):
             
             commande_repo.update_commande(self.commande_data['id_commande'], update_data)
             
-            print(f"[INFO] Statut de la commande mis à jour: {nouveau_statut}")
+            print(f"[INFO] Order status updated: {nouveau_statut}")
             
         except Exception as e:
-            print(f"[ERREUR] Impossible de mettre à jour le statut de la commande: {e}")
+            print(f"[ERROR] Unable to update order status: {e}")
     
     def get_reception_summary(self):
         """Retourne un résumé de la réception pour affichage"""
