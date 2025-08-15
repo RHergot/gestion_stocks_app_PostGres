@@ -21,18 +21,18 @@ class MouvementDialog(QDialog):
         self.load_data()
 
     def setup_ui(self):
-        """Configure l'interface utilisateur"""
+        """Configure the user interface"""
         self.setModal(True)
         self.resize(500, 600)
         
         # Titre selon le type de mouvement
         titles = {
-            'entree': self.tr("Nouvelle Entrée de Stock"),
-            'sortie': self.tr("Nouvelle Sortie de Stock"),
-            'transfert': self.tr("Nouveau Transfert"),
-            'inventaire': self.tr("Ajustement d'Inventaire")
+            'entree': self.tr("New Stock Entry"),
+            'sortie': self.tr("New Stock Out"),
+            'transfert': self.tr("New Transfer"),
+            'inventaire': self.tr("Inventory Adjustment")
         }
-        self.setWindowTitle(titles.get(self.mouvement_type, self.tr("Nouveau Mouvement")))
+        self.setWindowTitle(titles.get(self.mouvement_type, self.tr("New Movement")))
         
         layout = QVBoxLayout()
         
@@ -50,59 +50,59 @@ class MouvementDialog(QDialog):
         self.setLayout(layout)
 
     def create_entry_exit_form(self, layout):
-        """Crée le formulaire pour entrée/sortie"""
+        """Create the form for entry/exit"""
         # Informations principales
-        main_group = QGroupBox(self.tr("Informations Principales"))
+        main_group = QGroupBox(self.tr("Main Information"))
         main_layout = QFormLayout()
         
         # Pièce
         self.piece_combo = QComboBox()
         self.piece_combo.setEditable(True)
-        main_layout.addRow(self.tr("Pièce:"), self.piece_combo)
+        main_layout.addRow(self.tr("Part:"), self.piece_combo)
         
         # Type de mouvement
         self.type_combo = QComboBox()
-        main_layout.addRow(self.tr("Type de mouvement:"), self.type_combo)
+        main_layout.addRow(self.tr("Movement type:"), self.type_combo)
         
         # Quantité
         self.quantity_spin = QSpinBox()
         self.quantity_spin.setRange(1, 999999)
         self.quantity_spin.setValue(1)
-        main_layout.addRow(self.tr("Quantité:"), self.quantity_spin)
+        main_layout.addRow(self.tr("Quantity:"), self.quantity_spin)
         
         # Date et heure
         self.datetime_edit = QDateTimeEdit()
         self.datetime_edit.setDateTime(QDateTime.currentDateTime())
         self.datetime_edit.setCalendarPopup(True)
-        main_layout.addRow(self.tr("Date/Heure:"), self.datetime_edit)
+        main_layout.addRow(self.tr("Date/Time:"), self.datetime_edit)
         
         main_group.setLayout(main_layout)
         layout.addWidget(main_group)
         
         # Emplacement
-        location_group = QGroupBox(self.tr("Emplacement"))
+        location_group = QGroupBox(self.tr("Location"))
         location_layout = QFormLayout()
         
         if self.mouvement_type == 'entree':
             self.location_combo = QComboBox()
-            location_layout.addRow(self.tr("Emplacement destination:"), self.location_combo)
+            location_layout.addRow(self.tr("Destination location:"), self.location_combo)
         else:  # sortie
             self.location_combo = QComboBox()
-            location_layout.addRow(self.tr("Emplacement source:"), self.location_combo)
+            location_layout.addRow(self.tr("Source location:"), self.location_combo)
         
         location_group.setLayout(location_layout)
         layout.addWidget(location_group)
         
         # Informations financières (pour les entrées)
         if self.mouvement_type == 'entree':
-            financial_group = QGroupBox(self.tr("Informations Financières"))
+            financial_group = QGroupBox(self.tr("Financial Information"))
             financial_layout = QFormLayout()
             
             self.unit_cost_spin = QDoubleSpinBox()
             self.unit_cost_spin.setRange(0.0, 999999.99)
             self.unit_cost_spin.setDecimals(2)
             self.unit_cost_spin.setSuffix(" €")
-            financial_layout.addRow(self.tr("Coût unitaire:"), self.unit_cost_spin)
+            financial_layout.addRow(self.tr("Unit cost:"), self.unit_cost_spin)
             
             financial_group.setLayout(financial_layout)
             layout.addWidget(financial_group)
@@ -111,40 +111,40 @@ class MouvementDialog(QDialog):
         self.create_additional_info_form(layout)
 
     def create_transfer_form(self, layout):
-        """Crée le formulaire pour transfert"""
+        """Create the form for transfer"""
         # Informations principales
-        main_group = QGroupBox(self.tr("Informations du Transfert"))
+        main_group = QGroupBox(self.tr("Transfer Information"))
         main_layout = QFormLayout()
         
         # Pièce
         self.piece_combo = QComboBox()
         self.piece_combo.setEditable(True)
-        main_layout.addRow(self.tr("Pièce:"), self.piece_combo)
+        main_layout.addRow(self.tr("Part:"), self.piece_combo)
         
         # Quantité
         self.quantity_spin = QSpinBox()
         self.quantity_spin.setRange(1, 999999)
         self.quantity_spin.setValue(1)
-        main_layout.addRow(self.tr("Quantité:"), self.quantity_spin)
+        main_layout.addRow(self.tr("Quantity:"), self.quantity_spin)
         
         # Date et heure
         self.datetime_edit = QDateTimeEdit()
         self.datetime_edit.setDateTime(QDateTime.currentDateTime())
         self.datetime_edit.setCalendarPopup(True)
-        main_layout.addRow(self.tr("Date/Heure:"), self.datetime_edit)
+        main_layout.addRow(self.tr("Date/Time:"), self.datetime_edit)
         
         main_group.setLayout(main_layout)
         layout.addWidget(main_group)
         
         # Emplacements
-        location_group = QGroupBox(self.tr("Emplacements"))
+        location_group = QGroupBox(self.tr("Locations"))
         location_layout = QFormLayout()
         
         self.source_location_combo = QComboBox()
-        location_layout.addRow(self.tr("Emplacement source:"), self.source_location_combo)
+        location_layout.addRow(self.tr("Source location:"), self.source_location_combo)
         
         self.dest_location_combo = QComboBox()
-        location_layout.addRow(self.tr("Emplacement destination:"), self.dest_location_combo)
+        location_layout.addRow(self.tr("Destination location:"), self.dest_location_combo)
         
         location_group.setLayout(location_layout)
         layout.addWidget(location_group)
@@ -153,37 +153,37 @@ class MouvementDialog(QDialog):
         self.create_additional_info_form(layout)
 
     def create_inventory_form(self, layout):
-        """Crée le formulaire pour ajustement d'inventaire"""
+        """Create the form for inventory adjustment"""
         # Informations principales
-        main_group = QGroupBox(self.tr("Ajustement d'Inventaire"))
+        main_group = QGroupBox(self.tr("Inventory Adjustment"))
         main_layout = QFormLayout()
         
         # Pièce
         self.piece_combo = QComboBox()
         self.piece_combo.setEditable(True)
-        main_layout.addRow(self.tr("Pièce:"), self.piece_combo)
+        main_layout.addRow(self.tr("Part:"), self.piece_combo)
         
         # Stock actuel (lecture seule)
         self.current_stock_label = QLabel("0")
         self.current_stock_label.setStyleSheet("QLabel { font-weight: bold; color: blue; }")
-        main_layout.addRow(self.tr("Stock actuel:"), self.current_stock_label)
+        main_layout.addRow(self.tr("Current stock:"), self.current_stock_label)
         
         # Nouveau stock
         self.new_stock_spin = QSpinBox()
         self.new_stock_spin.setRange(0, 999999)
         self.new_stock_spin.setValue(0)
-        main_layout.addRow(self.tr("Nouveau stock:"), self.new_stock_spin)
+        main_layout.addRow(self.tr("New stock:"), self.new_stock_spin)
         
         # Différence (calculée automatiquement)
         self.difference_label = QLabel("0")
         self.difference_label.setStyleSheet("QLabel { font-weight: bold; }")
-        main_layout.addRow(self.tr("Différence:"), self.difference_label)
+        main_layout.addRow(self.tr("Difference:"), self.difference_label)
         
         # Date et heure
         self.datetime_edit = QDateTimeEdit()
         self.datetime_edit.setDateTime(QDateTime.currentDateTime())
         self.datetime_edit.setCalendarPopup(True)
-        main_layout.addRow(self.tr("Date/Heure:"), self.datetime_edit)
+        main_layout.addRow(self.tr("Date/Time:"), self.datetime_edit)
         
         main_group.setLayout(main_layout)
         layout.addWidget(main_group)
@@ -192,32 +192,32 @@ class MouvementDialog(QDialog):
         self.create_additional_info_form(layout)
 
     def create_additional_info_form(self, layout):
-        """Crée le formulaire d'informations complémentaires"""
-        additional_group = QGroupBox(self.tr("Informations Complémentaires"))
+        """Create the additional information form"""
+        additional_group = QGroupBox(self.tr("Additional Information"))
         additional_layout = QFormLayout()
         
         # Référence document
         self.reference_edit = QLineEdit()
-        self.reference_edit.setPlaceholderText(self.tr("Bon de commande, facture, etc."))
-        additional_layout.addRow(self.tr("Référence document:"), self.reference_edit)
+        self.reference_edit.setPlaceholderText(self.tr("Purchase order, invoice, etc."))
+        additional_layout.addRow(self.tr("Document reference:"), self.reference_edit)
         
         # Commentaire
         self.comment_edit = QTextEdit()
         self.comment_edit.setMaximumHeight(80)
-        self.comment_edit.setPlaceholderText(self.tr("Commentaire optionnel..."))
-        additional_layout.addRow(self.tr("Commentaire:"), self.comment_edit)
+        self.comment_edit.setPlaceholderText(self.tr("Optional comment..."))
+        additional_layout.addRow(self.tr("Comment:"), self.comment_edit)
         
         additional_group.setLayout(additional_layout)
         layout.addWidget(additional_group)
 
     def create_buttons(self, layout):
-        """Crée les boutons"""
+        """Create buttons"""
         button_layout = QHBoxLayout()
         
-        self.validate_btn = QPushButton(self.tr("Valider"))
+        self.validate_btn = QPushButton(self.tr("Validate"))
         self.validate_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; }")
         
-        self.cancel_btn = QPushButton(self.tr("Annuler"))
+        self.cancel_btn = QPushButton(self.tr("Cancel"))
         self.cancel_btn.setStyleSheet("QPushButton { background-color: #f44336; color: white; }")
         
         button_layout.addStretch()
@@ -227,7 +227,7 @@ class MouvementDialog(QDialog):
         layout.addLayout(button_layout)
 
     def setup_connections(self):
-        """Configure les connexions de signaux"""
+        """Configure signal connections"""
         self.validate_btn.clicked.connect(self.validate)
         self.cancel_btn.clicked.connect(self.reject)
         
@@ -240,11 +240,11 @@ class MouvementDialog(QDialog):
                 self.new_stock_spin.valueChanged.connect(self.calculate_difference)
 
     def load_data(self):
-        """Charge les données dans les combobox"""
+        """Load data into the comboboxes"""
         # Charger les pièces
         if hasattr(self, 'piece_combo'):
             self.piece_combo.clear()
-            self.piece_combo.addItem(self.tr("Sélectionner une pièce..."), None)
+            self.piece_combo.addItem(self.tr("Select a part..."), None)
             
             for piece in self.pieces:
                 text = f"{piece['reference']} - {piece['nom']} (Stock: {piece.get('stock_actuel', 0)})"
@@ -259,7 +259,7 @@ class MouvementDialog(QDialog):
         # Charger les emplacements
         if hasattr(self, 'location_combo'):
             self.location_combo.clear()
-            self.location_combo.addItem(self.tr("Aucun emplacement spécifique"), None)
+            self.location_combo.addItem(self.tr("No specific location"), None)
             for emplacement in self.emplacements:
                 text = f"{emplacement['nom']}"
                 if emplacement.get('allee'):
@@ -270,7 +270,7 @@ class MouvementDialog(QDialog):
         if hasattr(self, 'source_location_combo'):
             for combo in [self.source_location_combo, self.dest_location_combo]:
                 combo.clear()
-                combo.addItem(self.tr("Sélectionner un emplacement..."), None)
+                combo.addItem(self.tr("Select a location..."), None)
                 for emplacement in self.emplacements:
                     text = f"{emplacement['nom']}"
                     if emplacement.get('allee'):
@@ -278,7 +278,7 @@ class MouvementDialog(QDialog):
                     combo.addItem(text, emplacement)
 
     def on_piece_changed(self):
-        """Gère le changement de pièce sélectionnée"""
+        """Handle change of selected part"""
         if self.mouvement_type == 'inventaire':
             piece_data = self.piece_combo.currentData()
             if piece_data:
@@ -288,7 +288,7 @@ class MouvementDialog(QDialog):
                 self.calculate_difference()
 
     def calculate_difference(self):
-        """Calcule la différence pour l'ajustement d'inventaire"""
+        """Calculate the difference for inventory adjustment"""
         if self.mouvement_type == 'inventaire':
             try:
                 current_stock = int(self.current_stock_label.text())
@@ -309,63 +309,63 @@ class MouvementDialog(QDialog):
                 self.difference_label.setText("0")
 
     def validate(self):
-        """Valide le formulaire"""
+        """Validate the form"""
         try:
             # Validation commune
             if not hasattr(self, 'piece_combo') or not self.piece_combo.currentData():
                 QMessageBox.warning(self, self.tr("Validation"), 
-                                  self.tr("Veuillez sélectionner une pièce."))
+                                  self.tr("Please select a part."))
                 return
             
             # Validations spécifiques selon le type
             if self.mouvement_type in ['entree', 'sortie']:
                 if not self.type_combo.currentData():
                     QMessageBox.warning(self, self.tr("Validation"), 
-                                      self.tr("Veuillez sélectionner un type de mouvement."))
+                                      self.tr("Please select a movement type."))
                     return
                 
                 if self.quantity_spin.value() <= 0:
                     QMessageBox.warning(self, self.tr("Validation"), 
-                                      self.tr("La quantité doit être positive."))
+                                      self.tr("Quantity must be positive."))
                     return
             
             elif self.mouvement_type == 'transfert':
                 if not self.source_location_combo.currentData():
                     QMessageBox.warning(self, self.tr("Validation"), 
-                                      self.tr("Veuillez sélectionner un emplacement source."))
+                                      self.tr("Please select a source location."))
                     return
                 
                 if not self.dest_location_combo.currentData():
                     QMessageBox.warning(self, self.tr("Validation"), 
-                                      self.tr("Veuillez sélectionner un emplacement destination."))
+                                      self.tr("Please select a destination location."))
                     return
                 
                 if (self.source_location_combo.currentData()['id'] == 
                     self.dest_location_combo.currentData()['id']):
                     QMessageBox.warning(self, self.tr("Validation"), 
-                                      self.tr("L'emplacement source et destination doivent être différents."))
+                                      self.tr("Source and destination locations must be different."))
                     return
                 
                 if self.quantity_spin.value() <= 0:
                     QMessageBox.warning(self, self.tr("Validation"), 
-                                      self.tr("La quantité doit être positive."))
+                                      self.tr("Quantity must be positive."))
                     return
             
             elif self.mouvement_type == 'inventaire':
                 if self.new_stock_spin.value() < 0:
                     QMessageBox.warning(self, self.tr("Validation"), 
-                                      self.tr("Le nouveau stock ne peut pas être négatif."))
+                                      self.tr("New stock cannot be negative."))
                     return
             
             # Si toutes les validations passent
             self.accept()
             
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Erreur"), 
-                               self.tr(f"Erreur lors de la validation: {e}"))
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error during validation: {e}"))
 
     def get_data(self) -> Dict:
-        """Récupère les données du formulaire"""
+        """Retrieve form data"""
         try:
             piece_data = self.piece_combo.currentData()
             base_data = {
@@ -408,12 +408,12 @@ class MouvementDialog(QDialog):
             return base_data
             
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Erreur"), 
-                               self.tr(f"Erreur lors de la récupération des données: {e}"))
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error while retrieving data: {e}"))
             return {}
 
     def set_data(self, data: Dict):
-        """Définit les données du formulaire (pour l'édition)"""
-        # Cette méthode peut être utilisée pour pré-remplir le formulaire
-        # lors de l'édition d'un mouvement existant
+        """Set form data (for editing)"""
+        # This method can be used to pre-fill the form
+        # when editing an existing movement
         pass
