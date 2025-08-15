@@ -153,9 +153,9 @@ class MainWindow(QMainWindow):
         locations_action.triggered.connect(self.show_emplacements)
         general_menu.addAction(locations_action)
         # 3) Parts, Orders, Movements menus
-        # Menu Commandes
-        commandes_menu = menubar.addMenu(self.tr("Commandes"))
-        voir_commandes_action = QAction(self.tr("Voir les commandes"), self)
+        # Menu Orders
+        commandes_menu = menubar.addMenu(self.tr("Orders"))
+        voir_commandes_action = QAction(self.tr("View orders"), self)
         voir_commandes_action.triggered.connect(self.show_commandes)
         commandes_menu.addAction(voir_commandes_action)
         # Menu Pièces
@@ -181,26 +181,26 @@ class MainWindow(QMainWindow):
 
         movements_menu = menubar.addMenu(self.tr("Movements"))
         
-        # Actions du menu Mouvements
-        view_movements_action = QAction(self.tr("Voir les mouvements"), self)
+        # Actions for Movements menu
+        view_movements_action = QAction(self.tr("View movements"), self)
         view_movements_action.triggered.connect(self.show_movements)
         movements_menu.addAction(view_movements_action)
         
         movements_menu.addSeparator()
         
-        new_entry_action = QAction(self.tr("Nouvelle entrée"), self)
+        new_entry_action = QAction(self.tr("New entry"), self)
         new_entry_action.triggered.connect(self.show_new_entry)
         movements_menu.addAction(new_entry_action)
         
-        new_exit_action = QAction(self.tr("Nouvelle sortie"), self)
+        new_exit_action = QAction(self.tr("New exit"), self)
         new_exit_action.triggered.connect(self.show_new_exit)
         movements_menu.addAction(new_exit_action)
         
-        new_transfer_action = QAction(self.tr("Nouveau transfert"), self)
+        new_transfer_action = QAction(self.tr("New transfer"), self)
         new_transfer_action.triggered.connect(self.show_new_transfer)
         movements_menu.addAction(new_transfer_action)
         
-        inventory_adjustment_action = QAction(self.tr("Ajustement inventaire"), self)
+        inventory_adjustment_action = QAction(self.tr("Inventory adjustment"), self)
         inventory_adjustment_action.triggered.connect(self.show_inventory_adjustment)
         movements_menu.addAction(inventory_adjustment_action)
 
@@ -217,8 +217,8 @@ class MainWindow(QMainWindow):
                 ORDER BY stock_actuel ASC;
             """)
             rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]} ({r[1]}): {r[2]}/{r[3]}" for r in rows]) or "Aucune pièce en stock faible."
-        QMessageBox.information(self, self.tr("Pièces en stock faible"), msg)
+        msg = "\n".join([f"{r[0]} ({r[1]}): {r[2]}/{r[3]}" for r in rows]) or "No parts with low stock."
+        QMessageBox.information(self, self.tr("Parts with low stock"), msg)
 
     def show_pieces_by_machine(self):
         with self.db.conn.cursor() as cur:
@@ -230,8 +230,8 @@ class MainWindow(QMainWindow):
                 ORDER BY m.nom, p.nom;
             """)
             rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]} ({r[1]}) : {r[3]}" for r in rows]) or "Aucune pièce liée à une machine."
-        QMessageBox.information(self, self.tr("Pièces par machine"), msg)
+        msg = "\n".join([f"{r[0]} ({r[1]}): {r[3]}" for r in rows]) or "No parts linked to a machine."
+        QMessageBox.information(self, self.tr("Parts by machine"), msg)
 
     def show_inventaire_categorie(self):
         with self.db.conn.cursor() as cur:
@@ -244,8 +244,8 @@ class MainWindow(QMainWindow):
                 ORDER BY COUNT(*) DESC;
             """)
             rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]} : {r[1]} pièces, {r[2]} en stock" for r in rows]) or "Aucune catégorie."
-        QMessageBox.information(self, self.tr("Inventaire par catégorie"), msg)
+        msg = "\n".join([f"{r[0]}: {r[1]} parts, {r[2]} in stock" for r in rows]) or "No category."
+        QMessageBox.information(self, self.tr("Inventory by category"), msg)
 
     def show_emplacements_vides(self):
         with self.db.conn.cursor() as cur:
@@ -259,8 +259,8 @@ class MainWindow(QMainWindow):
                 ORDER BY nb_pieces ASC;
             """)
             rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]} : {r[1]} pièces" for r in rows]) or "Aucun emplacement sous-utilisé."
-        QMessageBox.information(self, self.tr("Emplacements sous-utilisés"), msg)
+        msg = "\n".join([f"{r[0]}: {r[1]} parts" for r in rows]) or "No underused location."
+        QMessageBox.information(self, self.tr("Underused locations"), msg)
 
     def show_pieces_by_statut(self):
         with self.db.conn.cursor() as cur:
@@ -273,8 +273,8 @@ class MainWindow(QMainWindow):
                 ORDER BY COUNT(*) DESC;
             """)
             rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]} : {r[1]} pièces" for r in rows]) or "Aucun statut."
-        QMessageBox.information(self, self.tr("Pièces par statut"), msg)
+        msg = "\n".join([f"{r[0]}: {r[1]} parts" for r in rows]) or "No status."
+        QMessageBox.information(self, self.tr("Parts by status"), msg)
 
     # === Méthodes pour les mouvements de stock ===
 
@@ -284,8 +284,8 @@ class MainWindow(QMainWindow):
             self.mouvement_table_view = MouvementTableView(self.mouvement_controller, parent=None)
             self.mouvement_table_view.show()
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Erreur"), 
-                               self.tr(f"Erreur lors de l'ouverture des mouvements: {e}"))
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error while opening movements: {e}"))
 
     def show_new_entry(self):
         """Affiche le dialog pour une nouvelle entrée"""
@@ -302,13 +302,13 @@ class MainWindow(QMainWindow):
                 result = self.mouvement_controller.effectuer_entree_stock(**data)
                 
                 if result['success']:
-                    QMessageBox.information(self, self.tr("Succès"), result['message'])
+                    QMessageBox.information(self, self.tr("Success"), result['message'])
                 else:
-                    QMessageBox.critical(self, self.tr("Erreur"), result['message'])
+                    QMessageBox.critical(self, self.tr("Error"), result['message'])
                     
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Erreur"), 
-                               self.tr(f"Erreur lors de la création de l'entrée: {e}"))
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error while creating entry: {e}"))
 
     def show_new_exit(self):
         """Affiche le dialog pour une nouvelle sortie"""
@@ -325,13 +325,13 @@ class MainWindow(QMainWindow):
                 result = self.mouvement_controller.effectuer_sortie_stock(**data)
                 
                 if result['success']:
-                    QMessageBox.information(self, self.tr("Succès"), result['message'])
+                    QMessageBox.information(self, self.tr("Success"), result['message'])
                 else:
-                    QMessageBox.critical(self, self.tr("Erreur"), result['message'])
+                    QMessageBox.critical(self, self.tr("Error"), result['message'])
                     
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Erreur"), 
-                               self.tr(f"Erreur lors de la création de la sortie: {e}"))
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error while creating exit: {e}"))
 
     def show_new_transfer(self):
         """Affiche le dialog pour un nouveau transfert"""
@@ -347,13 +347,13 @@ class MainWindow(QMainWindow):
                 result = self.mouvement_controller.effectuer_transfert(**data)
                 
                 if result['success']:
-                    QMessageBox.information(self, self.tr("Succès"), result['message'])
+                    QMessageBox.information(self, self.tr("Success"), result['message'])
                 else:
-                    QMessageBox.critical(self, self.tr("Erreur"), result['message'])
+                    QMessageBox.critical(self, self.tr("Error"), result['message'])
                     
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Erreur"), 
-                               self.tr(f"Erreur lors de la création du transfert: {e}"))
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error while creating transfer: {e}"))
 
     def show_inventory_adjustment(self):
         """Affiche le dialog pour un ajustement d'inventaire"""
@@ -368,10 +368,10 @@ class MainWindow(QMainWindow):
                 result = self.mouvement_controller.effectuer_ajustement_inventaire(**data)
                 
                 if result['success']:
-                    QMessageBox.information(self, self.tr("Succès"), result['message'])
+                    QMessageBox.information(self, self.tr("Success"), result['message'])
                 else:
-                    QMessageBox.critical(self, self.tr("Erreur"), result['message'])
+                    QMessageBox.critical(self, self.tr("Error"), result['message'])
                     
         except Exception as e:
-            QMessageBox.critical(self, self.tr("Erreur"), 
-                               self.tr(f"Erreur lors de l'ajustement d'inventaire: {e}"))
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error while adjusting inventory: {e}"))
