@@ -13,7 +13,7 @@ class SiteTableView(QWidget):
         self.table = QTableWidget(self)
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels([
-            self.tr("ID"), self.tr("Nom"), self.tr("Adresse"), self.tr("Ville"), self.tr("Pays"), self.tr("Contact principal")
+            self.tr("ID"), self.tr("Name"), self.tr("Address"), self.tr("City"), self.tr("Country"), self.tr("Primary contact")
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         layout.addWidget(self.table)
@@ -76,7 +76,7 @@ class SiteTableView(QWidget):
     def edit_site(self):
         site = self.get_selected_site()
         if not site:
-            QMessageBox.warning(self, self.tr("Aucun site sélectionné"), self.tr("Veuillez sélectionner un site à modifier."))
+            QMessageBox.warning(self, self.tr("No site selected"), self.tr("Please select a site to edit."))
             return
         dialog = SiteDialog(self)
         dialog.nom.setText(site["nom"])
@@ -95,9 +95,9 @@ class SiteTableView(QWidget):
     def delete_site(self):
         site = self.get_selected_site()
         if not site:
-            QMessageBox.warning(self, self.tr("Aucun site sélectionné"), self.tr("Veuillez sélectionner un site à supprimer."))
+            QMessageBox.warning(self, self.tr("No site selected"), self.tr("Please select a site to delete."))
             return
-        confirm = QMessageBox.question(self, self.tr("Confirmer la suppression"), self.tr(f"Supprimer le site '{site['nom']}' ?"), QMessageBox.Yes | QMessageBox.No)
+        confirm = QMessageBox.question(self, self.tr("Confirm deletion"), self.tr(f"Delete site '{site['nom']}'?"), QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.site_service.delete_site(site["id_site"])
             self.refresh()

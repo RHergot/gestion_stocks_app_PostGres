@@ -6,14 +6,14 @@ class TypeMachineTableView(QWidget):
     def __init__(self, type_machine_service, parent=None):
         super().__init__(parent)
         self.type_machine_service = type_machine_service
-        self.setWindowTitle(self.tr("Types de machine"))
+        self.setWindowTitle(self.tr("Machine types"))
         self.resize(800, 600)
         layout = QVBoxLayout()
         self.setGeometry(100, 100, 800, 600)
         self.table = QTableWidget(self)
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels([
-            self.tr("ID"), self.tr("Nom"), self.tr("Description"), self.tr("Catégorie")
+            self.tr("ID"), self.tr("Name"), self.tr("Description"), self.tr("Category")
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         layout.addWidget(self.table)
@@ -72,7 +72,7 @@ class TypeMachineTableView(QWidget):
     def edit_type_machine(self):
         type_machine = self.get_selected_type_machine()
         if not type_machine:
-            QMessageBox.warning(self, self.tr("Aucun type sélectionné"), self.tr("Veuillez sélectionner un type à modifier."))
+            QMessageBox.warning(self, self.tr("No type selected"), self.tr("Please select a type to edit."))
             return
         dialog = TypeMachineDialog(self)
         dialog.nom.setText(type_machine["nom"])
@@ -89,9 +89,9 @@ class TypeMachineTableView(QWidget):
     def delete_type_machine(self):
         type_machine = self.get_selected_type_machine()
         if not type_machine:
-            QMessageBox.warning(self, self.tr("Aucun type sélectionné"), self.tr("Veuillez sélectionner un type à supprimer."))
+            QMessageBox.warning(self, self.tr("No type selected"), self.tr("Please select a type to delete."))
             return
-        confirm = QMessageBox.question(self, self.tr("Confirmer la suppression"), self.tr(f"Supprimer le type '{type_machine['nom']}' ?"), QMessageBox.Yes | QMessageBox.No)
+        confirm = QMessageBox.question(self, self.tr("Confirm deletion"), self.tr(f"Delete type '{type_machine['nom']}'?"), QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.type_machine_service.delete_type_machine(type_machine["id_type_machine"])
             self.refresh()

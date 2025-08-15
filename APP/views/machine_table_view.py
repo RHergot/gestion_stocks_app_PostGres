@@ -11,19 +11,19 @@ class MachineTableView(QWidget):
         layout = QVBoxLayout()
         self.setGeometry(100, 100, 800, 600)
         self.table = QTableWidget(self)
-        self.table.setColumnCount(14)
+        self.table.setColumnCount(15)
         self.table.setHorizontalHeaderLabels([
-            self.tr("ID"), self.tr("Nom"), self.tr("Série"), self.tr("Modèle"), self.tr("Date installation"), self.tr("Localisation"), self.tr("État"), self.tr("Infos techniques"), self.tr("Type"), self.tr("Site"), self.tr("Fabricant"), self.tr("Parent"), self.tr("Criticité"), self.tr("Fin garantie"), self.tr("Date garantie")
+            self.tr("ID"), self.tr("Name"), self.tr("Serial"), self.tr("Model"), self.tr("Installation date"), self.tr("Location"), self.tr("Status"), self.tr("Technical info"), self.tr("Type"), self.tr("Site"), self.tr("Manufacturer"), self.tr("Parent"), self.tr("Criticality"), self.tr("Warranty end"), self.tr("Warranty date")
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         layout.addWidget(self.table)
 
         btn_layout = QHBoxLayout()
-        self.add_btn = QPushButton(self.tr("Ajouter"), self)
-        self.edit_btn = QPushButton(self.tr("Modifier"), self)
-        self.delete_btn = QPushButton(self.tr("Supprimer"), self)
-        self.refresh_btn = QPushButton(self.tr("Rafraîchir"), self)
-        self.close_btn = QPushButton(self.tr("Fermer"), self)
+        self.add_btn = QPushButton(self.tr("Add"), self)
+        self.edit_btn = QPushButton(self.tr("Edit"), self)
+        self.delete_btn = QPushButton(self.tr("Delete"), self)
+        self.refresh_btn = QPushButton(self.tr("Refresh"), self)
+        self.close_btn = QPushButton(self.tr("Close"), self)
         btn_layout.addWidget(self.add_btn)
         btn_layout.addWidget(self.edit_btn)
         btn_layout.addWidget(self.delete_btn)
@@ -97,7 +97,7 @@ class MachineTableView(QWidget):
     def edit_machine(self):
         machine = self.get_selected_machine()
         if not machine:
-            QMessageBox.warning(self, self.tr("Aucune machine sélectionnée"), self.tr("Veuillez sélectionner une machine à modifier."))
+            QMessageBox.warning(self, self.tr("No machine selected"), self.tr("Please select a machine to edit."))
             return
         dialog = MachineDialog(self)
         dialog.nom.setText(machine["nom"])
@@ -135,9 +135,9 @@ class MachineTableView(QWidget):
     def delete_machine(self):
         machine = self.get_selected_machine()
         if not machine:
-            QMessageBox.warning(self, self.tr("Aucune machine sélectionnée"), self.tr("Veuillez sélectionner une machine à supprimer."))
+            QMessageBox.warning(self, self.tr("No machine selected"), self.tr("Please select a machine to delete."))
             return
-        confirm = QMessageBox.question(self, self.tr("Confirmer la suppression"), self.tr(f"Supprimer la machine '{machine['nom']}' ?"), QMessageBox.Yes | QMessageBox.No)
+        confirm = QMessageBox.question(self, self.tr("Confirm deletion"), self.tr(f"Delete machine '{machine['nom']}'?"), QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.machine_service.delete_machine(machine["id_machine"])
             self.refresh()
