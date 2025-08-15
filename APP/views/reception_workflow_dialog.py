@@ -22,82 +22,82 @@ class ReceptionWorkflowDialog(QDialog):
     def setup_ui(self):
         """Configure l'interface utilisateur"""
         self.setModal(True)
-        self.setWindowTitle(self.tr("Réception de Pièces"))
+        self.setWindowTitle(self.tr("Parts Reception"))
         self.resize(500, 600)
         
         layout = QVBoxLayout()
         
         # Titre et description
-        title_label = QLabel(self.tr("Réception de Pièces"))
+        title_label = QLabel(self.tr("Parts Reception"))
         title_label.setFont(QFont("", 14, QFont.Bold))
         layout.addWidget(title_label)
         
-        info_label = QLabel(self.tr("Enregistre l'arrivée des pièces en zone de réception (impact neutre sur le stock)."))
+        info_label = QLabel(self.tr("Record the arrival of parts in the reception area (neutral impact on stock)."))
         info_label.setWordWrap(True)
         info_label.setStyleSheet("QLabel { color: #666; margin-bottom: 10px; }")
         layout.addWidget(info_label)
         
         # Informations principales
-        main_group = QGroupBox(self.tr("Informations de Réception"))
+        main_group = QGroupBox(self.tr("Reception Information"))
         main_layout = QFormLayout()
         
         # Pièce
         self.piece_combo = QComboBox()
         self.piece_combo.setEditable(True)
-        main_layout.addRow(self.tr("Pièce:"), self.piece_combo)
+        main_layout.addRow(self.tr("Part:"), self.piece_combo)
         
         # Quantité
         self.quantity_spin = QSpinBox()
         self.quantity_spin.setRange(1, 999999)
         self.quantity_spin.setValue(1)
-        main_layout.addRow(self.tr("Quantité reçue:"), self.quantity_spin)
+        main_layout.addRow(self.tr("Quantity received:"), self.quantity_spin)
         
         # Date et heure
         self.datetime_edit = QDateTimeEdit()
         self.datetime_edit.setDateTime(QDateTime.currentDateTime())
         self.datetime_edit.setCalendarPopup(True)
-        main_layout.addRow(self.tr("Date/Heure réception:"), self.datetime_edit)
+        main_layout.addRow(self.tr("Reception Date/Time:"), self.datetime_edit)
         
         main_group.setLayout(main_layout)
         layout.addWidget(main_group)
         
         # Zone de réception (optionnelle)
-        location_group = QGroupBox(self.tr("Zone de Réception"))
+        location_group = QGroupBox(self.tr("Reception Area"))
         location_layout = QFormLayout()
         
         self.location_combo = QComboBox()
-        location_layout.addRow(self.tr("Emplacement réception:"), self.location_combo)
+        location_layout.addRow(self.tr("Reception location:"), self.location_combo)
         
         location_group.setLayout(location_layout)
         layout.addWidget(location_group)
         
         # Informations financières
-        financial_group = QGroupBox(self.tr("Informations Financières"))
+        financial_group = QGroupBox(self.tr("Financial Information"))
         financial_layout = QFormLayout()
         
         self.unit_cost_spin = QDoubleSpinBox()
         self.unit_cost_spin.setRange(0.0, 999999.99)
         self.unit_cost_spin.setDecimals(2)
         self.unit_cost_spin.setSuffix(" €")
-        financial_layout.addRow(self.tr("Coût unitaire:"), self.unit_cost_spin)
+        financial_layout.addRow(self.tr("Unit cost:"), self.unit_cost_spin)
         
         financial_group.setLayout(financial_layout)
         layout.addWidget(financial_group)
         
         # Informations complémentaires
-        additional_group = QGroupBox(self.tr("Informations Complémentaires"))
+        additional_group = QGroupBox(self.tr("Additional Information"))
         additional_layout = QFormLayout()
         
         # Référence document
         self.reference_edit = QLineEdit()
-        self.reference_edit.setPlaceholderText(self.tr("Bon de livraison, facture, etc."))
-        additional_layout.addRow(self.tr("Référence document:"), self.reference_edit)
+        self.reference_edit.setPlaceholderText(self.tr("Delivery note, invoice, etc."))
+        additional_layout.addRow(self.tr("Document reference:"), self.reference_edit)
         
         # Commentaire
         self.comment_edit = QTextEdit()
         self.comment_edit.setMaximumHeight(80)
-        self.comment_edit.setPlaceholderText(self.tr("Commentaire sur la réception..."))
-        additional_layout.addRow(self.tr("Commentaire:"), self.comment_edit)
+        self.comment_edit.setPlaceholderText(self.tr("Comment about the reception..."))
+        additional_layout.addRow(self.tr("Comment:"), self.comment_edit)
         
         additional_group.setLayout(additional_layout)
         layout.addWidget(additional_group)
@@ -111,9 +111,9 @@ class ReceptionWorkflowDialog(QDialog):
         """Crée les boutons"""
         btn_layout = QHBoxLayout()
         
-        self.validate_btn = QPushButton(self.tr("Valider Réception"))
+        self.validate_btn = QPushButton(self.tr("Validate Reception"))
         self.validate_btn.setStyleSheet("QPushButton { background-color: #9C27B0; color: white; }")
-        self.cancel_btn = QPushButton(self.tr("Annuler"))
+        self.cancel_btn = QPushButton(self.tr("Cancel"))
         
         btn_layout.addWidget(self.validate_btn)
         btn_layout.addWidget(self.cancel_btn)
@@ -133,7 +133,7 @@ class ReceptionWorkflowDialog(QDialog):
         # Charger les pièces
         if hasattr(self, 'piece_combo'):
             self.piece_combo.clear()
-            self.piece_combo.addItem(self.tr("Sélectionner une pièce..."), None)
+            self.piece_combo.addItem(self.tr("Select a part..."), None)
             
             for piece in self.pieces:
                 text = f"{piece['reference']} - {piece['nom']} (Stock: {piece.get('stock_actuel', 0)})"
@@ -142,7 +142,7 @@ class ReceptionWorkflowDialog(QDialog):
         # Charger les emplacements
         if hasattr(self, 'location_combo'):
             self.location_combo.clear()
-            self.location_combo.addItem(self.tr("Zone de réception générale"), None)
+            self.location_combo.addItem(self.tr("General reception area"), None)
             for emplacement in self.emplacements:
                 text = f"{emplacement['nom']}"
                 if emplacement.get('allee'):
@@ -159,12 +159,12 @@ class ReceptionWorkflowDialog(QDialog):
         # Validation des données
         if not self.piece_combo.currentData():
             QMessageBox.warning(self, self.tr("Validation"), 
-                              self.tr("Veuillez sélectionner une pièce."))
+                              self.tr("Please select a part."))
             return
         
         if self.quantity_spin.value() <= 0:
             QMessageBox.warning(self, self.tr("Validation"), 
-                              self.tr("La quantité doit être positive."))
+                              self.tr("Quantity must be positive."))
             return
         self.accept()
 

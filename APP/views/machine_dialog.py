@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt, QDate
 class MachineDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(self.tr("Ajouter/Modifier une machine"))
+        self.setWindowTitle(self.tr("Add/Edit Machine"))
         layout = QFormLayout(self)
 
         self.nom = QLineEdit(self)
@@ -44,23 +44,23 @@ class MachineDialog(QDialog):
             for f in fabricants:
                 self.fabricant_id.addItem(f"{f['nom']} (ID {f['id_fabricant']})", f['id_fabricant'])
 
-        layout.addRow(self.tr("Nom"), self.nom)
-        layout.addRow(self.tr("Numéro de série"), self.serial)
-        layout.addRow(self.tr("Modèle"), self.modele)
-        layout.addRow(self.tr("Date installation"), self.date_installation)
-        layout.addRow(self.tr("Localisation"), self.localisation)
-        layout.addRow(self.tr("État"), self.etat)
-        layout.addRow(self.tr("Infos techniques"), self.informations_techniques)
-        layout.addRow(self.tr("Type de machine"), self.type_machine_id)
+        layout.addRow(self.tr("Name"), self.nom)
+        layout.addRow(self.tr("Serial number"), self.serial)
+        layout.addRow(self.tr("Model"), self.modele)
+        layout.addRow(self.tr("Installation date"), self.date_installation)
+        layout.addRow(self.tr("Location"), self.localisation)
+        layout.addRow(self.tr("Status"), self.etat)
+        layout.addRow(self.tr("Technical info"), self.informations_techniques)
+        layout.addRow(self.tr("Machine type"), self.type_machine_id)
         layout.addRow(self.tr("Site"), self.site_id)
-        layout.addRow(self.tr("Fabricant"), self.fabricant_id)
+        layout.addRow(self.tr("Manufacturer"), self.fabricant_id)
         layout.addRow(self.tr("Parent machine ID"), self.parent_machine_id)
-        layout.addRow(self.tr("Criticité"), self.criticite)
-        layout.addRow(self.tr("Fin garantie"), self.garantie_fin)
+        layout.addRow(self.tr("Criticality"), self.criticite)
+        layout.addRow(self.tr("Warranty end"), self.garantie_fin)
 
         btns = QHBoxLayout()
         self.ok_btn = QPushButton("OK", self)
-        self.cancel_btn = QPushButton("Annuler", self)
+        self.cancel_btn = QPushButton("Cancel", self)
         btns.addWidget(self.ok_btn)
         btns.addWidget(self.cancel_btn)
         layout.addRow(btns)
@@ -72,16 +72,16 @@ class MachineDialog(QDialog):
         # Validation simple
         errors = []
         if not self.nom.text().strip():
-            errors.append("Le nom est obligatoire.")
+            errors.append("Name is required.")
         if not self.type_machine_id.currentData():
-            errors.append("Le type de machine est obligatoire.")
+            errors.append("Machine type is required.")
         if not self.site_id.currentData():
-            errors.append("Le site est obligatoire.")
+            errors.append("Site is required.")
         if not self.fabricant_id.currentData():
-            errors.append("Le fabricant est obligatoire.")
+            errors.append("Manufacturer is required.")
         if errors:
             from PySide6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, self.tr("Erreur de saisie"), self.tr("\n").join([self.tr(e) for e in errors]))
+            QMessageBox.warning(self, self.tr("Input error"), self.tr("\n").join([self.tr(e) for e in errors]))
             return None
         return {
             "nom": self.nom.text(),

@@ -2,25 +2,25 @@ from PySide6.QtWidgets import QAction, QMessageBox
 
 def patch_selection_menu(self):
     menubar = self.menuBar()
-    selection_menu = menubar.addMenu(self.tr("Sélection"))
+    selection_menu = menubar.addMenu(self.tr("Selection"))
     # 1. Pièces en stock faible
-    stock_faible_action = QAction(self.tr("Pièces en stock faible"), self)
+    stock_faible_action = QAction(self.tr("Parts with Low Stock"), self)
     stock_faible_action.triggered.connect(self.show_stock_faible)
     selection_menu.addAction(stock_faible_action)
     # 2. Pièces par machine
-    par_machine_action = QAction(self.tr("Pièces par machine"), self)
+    par_machine_action = QAction(self.tr("Parts by Machine"), self)
     par_machine_action.triggered.connect(self.show_pieces_by_machine)
     selection_menu.addAction(par_machine_action)
     # 3. Inventaire par catégorie
-    inventaire_categorie_action = QAction(self.tr("Inventaire par catégorie"), self)
+    inventaire_categorie_action = QAction(self.tr("Inventory by Category"), self)
     inventaire_categorie_action.triggered.connect(self.show_inventaire_categorie)
     selection_menu.addAction(inventaire_categorie_action)
     # 4. Emplacements sous-utilisés
-    emplacements_vides_action = QAction(self.tr("Emplacements sous-utilisés"), self)
+    emplacements_vides_action = QAction(self.tr("Underutilized Locations"), self)
     emplacements_vides_action.triggered.connect(self.show_emplacements_vides)
     selection_menu.addAction(emplacements_vides_action)
     # 5. Pièces par statut
-    par_statut_action = QAction(self.tr("Pièces par statut"), self)
+    par_statut_action = QAction(self.tr("Parts by Status"), self)
     par_statut_action.triggered.connect(self.show_pieces_by_statut)
     selection_menu.addAction(par_statut_action)
 
@@ -33,8 +33,8 @@ def show_stock_faible(self):
             ORDER BY stock_actuel ASC;
         """)
         rows = cur.fetchall()
-    msg = "\n".join([f"{r[0]} ({r[1]}): {r[2]}/{r[3]}" for r in rows]) or "Aucune pièce en stock faible."
-    QMessageBox.information(self, self.tr("Pièces en stock faible"), msg)
+    msg = "\n".join([f"{r[0]} ({r[1]}): {r[2]}/{r[3]}" for r in rows]) or self.tr("No low-stock parts.")
+    QMessageBox.information(self, self.tr("Parts with Low Stock"), msg)
 
 def show_pieces_by_machine(self):
     with self.db.conn.cursor() as cur:
@@ -46,8 +46,8 @@ def show_pieces_by_machine(self):
             ORDER BY m.nom, p.nom;
         """)
         rows = cur.fetchall()
-    msg = "\n".join([f"{r[0]} ({r[1]}) : {r[3]}" for r in rows]) or "Aucune pièce liée à une machine."
-    QMessageBox.information(self, self.tr("Pièces par machine"), msg)
+    msg = "\n".join([f"{r[0]} ({r[1]}): {r[3]}" for r in rows]) or self.tr("No parts linked to a machine.")
+    QMessageBox.information(self, self.tr("Parts by Machine"), msg)
 
 def show_inventaire_categorie(self):
     with self.db.conn.cursor() as cur:
@@ -60,8 +60,8 @@ def show_inventaire_categorie(self):
             ORDER BY COUNT(*) DESC;
         """)
         rows = cur.fetchall()
-    msg = "\n".join([f"{r[0]} : {r[1]} pièces, {r[2]} en stock" for r in rows]) or "Aucune catégorie."
-    QMessageBox.information(self, self.tr("Inventaire par catégorie"), msg)
+    msg = "\n".join([f"{r[0]}: {r[1]} parts, {r[2]} in stock" for r in rows]) or self.tr("No categories.")
+    QMessageBox.information(self, self.tr("Inventory by Category"), msg)
 
 def show_emplacements_vides(self):
     with self.db.conn.cursor() as cur:
@@ -75,8 +75,8 @@ def show_emplacements_vides(self):
             ORDER BY nb_pieces ASC;
         """)
         rows = cur.fetchall()
-    msg = "\n".join([f"{r[0]} : {r[1]} pièces" for r in rows]) or "Aucun emplacement sous-utilisé."
-    QMessageBox.information(self, self.tr("Emplacements sous-utilisés"), msg)
+    msg = "\n".join([f"{r[0]}: {r[1]} parts" for r in rows]) or self.tr("No underutilized locations.")
+    QMessageBox.information(self, self.tr("Underutilized Locations"), msg)
 
 def show_pieces_by_statut(self):
     with self.db.conn.cursor() as cur:
@@ -89,5 +89,5 @@ def show_pieces_by_statut(self):
             ORDER BY COUNT(*) DESC;
         """)
         rows = cur.fetchall()
-    msg = "\n".join([f"{r[0]} : {r[1]} pièces" for r in rows]) or "Aucun statut."
-    QMessageBox.information(self, self.tr("Pièces par statut"), msg)
+    msg = "\n".join([f"{r[0]}: {r[1]} parts" for r in rows]) or self.tr("No statuses.")
+    QMessageBox.information(self, self.tr("Parts by Status"), msg)

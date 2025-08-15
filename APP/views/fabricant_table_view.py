@@ -6,14 +6,14 @@ class FabricantTableView(QWidget):
     def __init__(self, fabricant_service, parent=None):
         super().__init__(parent)
         self.fabricant_service = fabricant_service
-        self.setWindowTitle("Fabricants")
+        self.setWindowTitle("Manufacturers")
         self.resize(800, 600)
         layout = QVBoxLayout()
         self.setGeometry(100, 100, 800, 600)
         self.table = QTableWidget(self)
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels([
-            "ID", "Nom", "Contact", "Site web", "Support technique"
+            "ID", "Name", "Contact", "Website", "Technical support"
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         layout.addWidget(self.table)
@@ -74,7 +74,7 @@ class FabricantTableView(QWidget):
     def edit_fabricant(self):
         fabricant = self.get_selected_fabricant()
         if not fabricant:
-            QMessageBox.warning(self, "Aucun fabricant sélectionné", "Veuillez sélectionner un fabricant à modifier.")
+            QMessageBox.warning(self, "No manufacturer selected", "Please select a manufacturer to edit.")
             return
         dialog = FabricantDialog(self)
         dialog.nom.setText(fabricant["nom"])
@@ -92,9 +92,9 @@ class FabricantTableView(QWidget):
     def delete_fabricant(self):
         fabricant = self.get_selected_fabricant()
         if not fabricant:
-            QMessageBox.warning(self, "Aucun fabricant sélectionné", "Veuillez sélectionner un fabricant à supprimer.")
+            QMessageBox.warning(self, "No manufacturer selected", "Please select a manufacturer to delete.")
             return
-        confirm = QMessageBox.question(self, "Confirmer la suppression", f"Supprimer le fabricant '{fabricant['nom']}' ?", QMessageBox.Yes | QMessageBox.No)
+        confirm = QMessageBox.question(self, "Confirm deletion", f"Delete manufacturer '{fabricant['nom']}'?", QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.fabricant_service.delete_fabricant(fabricant["id_fabricant"])
             self.refresh()

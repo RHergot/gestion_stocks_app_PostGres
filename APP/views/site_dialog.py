@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QDialog, QFormLayout, QLineEdit, QPushButton, QHBo
 class SiteDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(self.tr("Ajouter/Modifier un site"))
+        self.setWindowTitle(self.tr("Add/Edit Site"))
         layout = QFormLayout(self)
 
         self.nom = QLineEdit(self)
@@ -12,15 +12,15 @@ class SiteDialog(QDialog):
         self.pays = QLineEdit(self)
         self.contact_principal = QLineEdit(self)
 
-        layout.addRow(self.tr("Nom"), self.nom)
-        layout.addRow(self.tr("Adresse"), self.adresse)
-        layout.addRow(self.tr("Ville"), self.ville)
-        layout.addRow(self.tr("Pays"), self.pays)
-        layout.addRow(self.tr("Contact principal"), self.contact_principal)
+        layout.addRow(self.tr("Name"), self.nom)
+        layout.addRow(self.tr("Address"), self.adresse)
+        layout.addRow(self.tr("City"), self.ville)
+        layout.addRow(self.tr("Country"), self.pays)
+        layout.addRow(self.tr("Primary contact"), self.contact_principal)
 
         btns = QHBoxLayout()
         self.ok_btn = QPushButton(self.tr("OK"), self)
-        self.cancel_btn = QPushButton(self.tr("Annuler"), self)
+        self.cancel_btn = QPushButton(self.tr("Cancel"), self)
         btns.addWidget(self.ok_btn)
         btns.addWidget(self.cancel_btn)
         layout.addRow(btns)
@@ -31,7 +31,7 @@ class SiteDialog(QDialog):
     def get_data(self):
         if not self.nom.text().strip():
             from PySide6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, self.tr("Erreur de saisie"), self.tr("Le nom du site est obligatoire."))
+            QMessageBox.warning(self, self.tr("Input error"), self.tr("Site name is required."))
             return None
         return {
             "nom": self.nom.text(),

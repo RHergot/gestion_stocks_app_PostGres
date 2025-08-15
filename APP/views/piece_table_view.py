@@ -14,25 +14,25 @@ class PieceTableView(QWidget):
         from PySide6.QtWidgets import QMenuBar, QMenu
         from PySide6.QtGui import QAction
         self.menu_bar = QMenuBar(self)
-        selection_menu = self.menu_bar.addMenu(self.tr("Sélection"))
+        selection_menu = self.menu_bar.addMenu(self.tr("Selection"))
         # 1. Pièces en stock faible
-        stock_faible_action = QAction(self.tr("Pièces en stock faible"), self)
+        stock_faible_action = QAction(self.tr("Low stock parts"), self)
         stock_faible_action.triggered.connect(self.show_stock_faible)
         selection_menu.addAction(stock_faible_action)
         # 2. Pièces par machine
-        par_machine_action = QAction(self.tr("Pièces par machine"), self)
+        par_machine_action = QAction(self.tr("Parts by machine"), self)
         par_machine_action.triggered.connect(self.show_pieces_by_machine)
         selection_menu.addAction(par_machine_action)
         # 3. Inventaire par catégorie
-        inventaire_categorie_action = QAction(self.tr("Inventaire par catégorie"), self)
+        inventaire_categorie_action = QAction(self.tr("Inventory by category"), self)
         inventaire_categorie_action.triggered.connect(self.show_inventaire_categorie)
         selection_menu.addAction(inventaire_categorie_action)
         # 4. Emplacements sous-utilisés
-        emplacements_vides_action = QAction(self.tr("Emplacements sous-utilisés"), self)
+        emplacements_vides_action = QAction(self.tr("Underutilized locations"), self)
         emplacements_vides_action.triggered.connect(self.show_emplacements_vides)
         selection_menu.addAction(emplacements_vides_action)
         # 5. Pièces par statut
-        par_statut_action = QAction(self.tr("Pièces par statut"), self)
+        par_statut_action = QAction(self.tr("Parts by status"), self)
         par_statut_action.triggered.connect(self.show_pieces_by_statut)
         selection_menu.addAction(par_statut_action)
         layout.addWidget(self.menu_bar)

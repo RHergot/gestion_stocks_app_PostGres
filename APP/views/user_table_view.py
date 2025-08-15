@@ -5,14 +5,14 @@ class UserTableView(QWidget):
     def __init__(self, user_service, parent=None):
         super().__init__(parent)
         self.user_service = user_service
-        self.setWindowTitle(self.tr("Utilisateurs"))
+        self.setWindowTitle(self.tr("Users"))
         self.resize(800, 600)
         layout = QVBoxLayout()
         self.setGeometry(100, 100, 800, 600)
         self.table = QTableWidget(self)
         self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels([
-            self.tr("ID"), self.tr("Login"), self.tr("Nom complet"), self.tr("Rôle"), self.tr("Email"), self.tr("Actif"), self.tr("Dernière connexion")
+            self.tr("ID"), self.tr("Login"), self.tr("Full name"), self.tr("Role"), self.tr("Email"), self.tr("Active"), self.tr("Last login")
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         layout.addWidget(self.table)
@@ -49,7 +49,7 @@ class UserTableView(QWidget):
             self.table.setItem(row, 2, QTableWidgetItem(user.get("nom_complet", "")))
             self.table.setItem(row, 3, QTableWidgetItem(user.get("role", "")))
             self.table.setItem(row, 4, QTableWidgetItem(user.get("email", "")))
-            self.table.setItem(row, 5, QTableWidgetItem(self.tr("Oui") if user.get("actif") else self.tr("Non")))
+            self.table.setItem(row, 5, QTableWidgetItem(self.tr("Yes") if user.get("actif") else self.tr("No")))
             self.table.setItem(row, 6, QTableWidgetItem(user.get("derniere_connexion", "")))
 
     def get_selected_user(self):
@@ -62,7 +62,7 @@ class UserTableView(QWidget):
             "nom_complet": self.table.item(row, 2).text(),
             "role": self.table.item(row, 3).text(),
             "email": self.table.item(row, 4).text(),
-            "actif": self.table.item(row, 5).text() == "Oui",
+            "actif": self.table.item(row, 5).text() == self.tr("Yes"),
             "derniere_connexion": self.table.item(row, 6).text(),
         }
         return user
@@ -78,7 +78,7 @@ class UserTableView(QWidget):
     def edit_user(self):
         user = self.get_selected_user()
         if not user:
-            QMessageBox.warning(self, self.tr("Aucun utilisateur sélectionné"), self.tr("Veuillez sélectionner un utilisateur à modifier."))
+            QMessageBox.warning(self, self.tr("No user selected"), self.tr("Please select a user to edit."))
             return
         from .user_dialog import UserDialog
         dialog = UserDialog(self)
@@ -98,9 +98,9 @@ class UserTableView(QWidget):
     def delete_user(self):
         user = self.get_selected_user()
         if not user:
-            QMessageBox.warning(self, self.tr("Aucun utilisateur sélectionné"), self.tr("Veuillez sélectionner un utilisateur à supprimer."))
+            QMessageBox.warning(self, self.tr("No user selected"), self.tr("Please select a user to delete."))
             return
-        confirm = QMessageBox.question(self, self.tr("Confirmer la suppression"), self.tr(f"Supprimer l'utilisateur {user['login']} ?"))
+        confirm = QMessageBox.question(self, self.tr("Confirm deletion"), self.tr(f"Delete user {user['login']}?"))
         if confirm == QMessageBox.Yes:
             self.user_service.delete_user(user["id_utilisateur"])
             self.refresh()
