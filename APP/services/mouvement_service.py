@@ -478,6 +478,95 @@ class MouvementService:
             self.logger.error(f"Erreur lors de la correction d'incohérence: {e}")
             return False
 
+    def vider_piece_de_tous_emplacements(self, piece_id: int, utilisateur_id: int = None,
+                                         commentaire: str = None) -> int:
+        """Vide la pièce de tous les emplacements en générant des sorties d'inventaire par emplacement.
+
+        Retourne le nombre de mouvements créés.
+        """
+        try:
+            # Récupérer les emplacements où se trouve la pièce
+            emplacements = self.get_emplacements_piece(piece_id)
+
+            if not emplacements:
+                return 0
+
+            # Trouver le type de mouvement SORTIE_INVENTAIRE
+            types_mouvement = self.get_all_types_mouvement()
+            type_sortie_inventaire = next((t for t in types_mouvement if t['nom'] == 'SORTIE_INVENTAIRE'), None)
+            if not type_sortie_inventaire:
+                raise ValueError("Type de mouvement SORTIE_INVENTAIRE non trouvé")
+
+            mouvements_crees = 0
+            for emp in emplacements:
+                try:
+                    quantite = emp.get('quantite') or 0
+                    emplacement_id = emp.get('emplacement_id') or emp.get('id')
+                    if emplacement_id is None:
+                        # Impossible d'identifier l'emplacement dans la vue
+                        continue
+                    if quantite and quantite > 0:
+                        self.creer_mouvement_sortie(
+                            piece_id=piece_id,
+                            quantite=quantite,
+                            type_mouvement_id=type_sortie_inventaire['id'],
+                            emplacement_source_id=emplacement_id,
+                            utilisateur_id=utilisateur_id,
+                            reference_document=f"VIDAGE-PIECE-{piece_id}",
+                            commentaire=f"Vidage de l'emplacement {emplacement_id}. {commentaire or ''}".strip()
+                        )
+                        mouvements_crees += 1
+                except Exception as e:
+                    # Continuer les autres emplacements mais journaliser l'erreur
+                    self.logger.error(f"Echec vidage emplacement pour pièce {piece_id}: {e}")
+
+            return mouvements_crees
+        except Exception as e:
+            self.logger.error(f"Erreur lors du vidage des emplacements pour la pièce {piece_id}: {e}")
+            raise
+
+    def transferer_piece_de_tous_emplacements(self, piece_id: int, emplacement_destination_id: int,
+                                              utilisateur_id: int = None, commentaire: str = None) -> int:
+        """Transfère toute la quantité présente de la pièce depuis tous ses emplacements
+        vers un emplacement destination (ex: 'waste'). Crée des mouvements TRANSFERT_SORTIE/ENTREE.
+
+        Retourne le nombre de transferts effectués (paires sortie+entrée comptées comme 1 transfert par source).
+        """
+        try:
+            # Vérifier que l'emplacement destination existe
+            dest = self.emplacement_repo.get_emplacement_by_id(emplacement_destination_id)
+            if not dest:
+                raise ValueError(f"Emplacement destination {emplacement_destination_id} introuvable")
+
+            emplacements = self.get_emplacements_piece(piece_id)
+            if not emplacements:
+                return 0
+
+            transferts_effectues = 0
+            for emp in emplacements:
+                try:
+                    quantite = emp.get('quantite') or 0
+                    source_id = emp.get('emplacement_id') or emp.get('id')
+                    if source_id is None or source_id == emplacement_destination_id:
+                        continue
+                    if quantite and quantite > 0:
+                        self.creer_mouvement_transfert(
+                            piece_id=piece_id,
+                            quantite=quantite,
+                            emplacement_source_id=source_id,
+                            emplacement_destination_id=emplacement_destination_id,
+                            utilisateur_id=utilisateur_id,
+                            reference_document=f"TRANSFERT-WASTE-PIECE-{piece_id}",
+                            commentaire=f"Transfert total vers {emplacement_destination_id}. {commentaire or ''}".strip()
+                        )
+                        transferts_effectues += 1
+                except Exception as e:
+                    self.logger.error(f"Echec transfert depuis emplacement {emp} pour pièce {piece_id}: {e}")
+            return transferts_effectues
+        except Exception as e:
+            self.logger.error(f"Erreur lors du transfert de tous les emplacements vers {emplacement_destination_id} pour la pièce {piece_id}: {e}")
+            raise
+
     def creer_mouvement_reception(self, piece_id: int, quantite: int, type_mouvement_id: int,
                                  emplacement_destination_id: int = None, utilisateur_id: int = None,
                                  reference_document: str = None, commentaire: str = None,

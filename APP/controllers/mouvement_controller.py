@@ -172,6 +172,35 @@ class MouvementController:
                 'message': 'Erreur lors du transfert'
             }
 
+    def transferer_tout_vers_emplacement(self, piece_id: int, emplacement_destination_id: int,
+                                         utilisateur_id: int = None, commentaire: str = None) -> Dict:
+        """Transfère toute la quantité de la pièce depuis tous ses emplacements
+        vers l'emplacement destination (ex: 'waste')."""
+        try:
+            # Validations
+            self._valider_piece_existe(piece_id)
+            self._valider_emplacement_existe(emplacement_destination_id)
+
+            transferts = self.mouvement_service.transferer_piece_de_tous_emplacements(
+                piece_id=piece_id,
+                emplacement_destination_id=emplacement_destination_id,
+                utilisateur_id=utilisateur_id,
+                commentaire=commentaire
+            )
+
+            return {
+                'success': True,
+                'count': transferts,
+                'message': f"Transfert vers l'emplacement {emplacement_destination_id} effectué depuis {transferts} emplacement(s)."
+            }
+        except Exception as e:
+            self.logger.error(f"Erreur lors du transfert total vers emplacement: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': "Erreur lors du transfert vers l'emplacement"
+            }
+
     def effectuer_ajustement_inventaire(self, piece_id: int, nouveau_stock: int,
                                        utilisateur_id: int = None, commentaire: str = None) -> Dict:
         """Effectue un ajustement d'inventaire"""
