@@ -1,6 +1,11 @@
 from APP.models.piece_repository import PieceRepository
 from APP.services.piece_extension_service import PieceExtensionService
 from APP.services.machine_service import MachineService
+from APP.services.mouvement_service import MouvementService
+try:
+    from psycopg2 import errors as pg_errors
+except Exception:  # pragma: no cover - fallback if psycopg2 not available in some contexts
+    pg_errors = None
 
 class PieceService:
     def __init__(self, db):
@@ -8,6 +13,7 @@ class PieceService:
         self.repo = PieceRepository(db)
         self.extension_service = PieceExtensionService(db)
         self.machine_service = MachineService(db)
+        self.mouvement_service = MouvementService(db)
 
     def get_all_pieces(self):
         return self.repo.get_all_pieces()
@@ -66,6 +72,74 @@ class PieceService:
         self.repo.update_piece(id_piece, piece)
         self.extension_service.add_or_update_extension(id_piece, extension)
 
+    # Pré-contrôle: recense les références empêchant la suppression
+    def get_delete_blockers(self, id_piece: int) -> dict:
+        counts = {
+            "mouvement_stock": 0,
+            "reception_lot": 0,
+            # "emplacement_stock": 0,  # en cascade, informatif seulement
+            # "piece_extension": 0,     # supprimé avant, informatif seulement
+        }
+        with self.db.conn.cursor() as cur:
+            # Mouvement de stock (bloquant)
+            cur.execute("SELECT COUNT(*) FROM mouvement_stock WHERE piece_id = %s;", (id_piece,))
+            counts["mouvement_stock"] = cur.fetchone()[0]
+
+            # Lots de réception (bloquant)
+            cur.execute("SELECT COUNT(*) FROM lot_reception WHERE piece_id = %s;", (id_piece,))
+            counts["reception_lot"] = cur.fetchone()[0]
+
+            # Informative only (non bloquant car ON DELETE CASCADE)
+            # cur.execute("SELECT COUNT(*) FROM emplacement_stock WHERE piece_id = %s;", (id_piece,))
+            # counts["emplacement_stock"] = cur.fetchone()[0]
+
+            # Informative only (devrait être 0 car supprimé par service avant delete)
+            # cur.execute("SELECT COUNT(*) FROM piece_extension WHERE id_piece = %s;", (id_piece,))
+            # counts["piece_extension"] = cur.fetchone()[0]
+
+        return counts
+
+    def format_blockers_message(self, counts: dict) -> str:
+        total = sum(counts.values())
+        if total == 0:
+            return ""
+        parts = []
+        if counts.get("mouvement_stock"):
+            parts.append(f"- {counts['mouvement_stock']} record(s) in stock movements")
+        if counts.get("reception_lot"):
+            parts.append(f"- {counts['reception_lot']} record(s) in reception lots")
+        details = "\n".join(parts) if parts else ""
+        return (
+            "Cannot delete this part because it is referenced by other records.\n"
+            "Please remove these links first:\n" + details
+        )
+
+    def archive_piece(self, id_piece: int):
+        """Set piece statut to 'Inactif' safely (archive), with rollback on failure."""
+        try:
+            self.repo.set_statut(id_piece, "Inactif")
+        except Exception as e:
+            try:
+                self.db.conn.rollback()
+            except Exception:
+                pass
+            raise
+
+    def clear_piece_stocks(self, id_piece: int, utilisateur_id: int = None, commentaire: str = None) -> int:
+        """Empty stock of this piece from all emplacements via inventory-out movements.
+
+        Returns the number of movements created.
+        """
+        try:
+            return self.mouvement_service.vider_piece_de_tous_emplacements(id_piece, utilisateur_id, commentaire)
+        except Exception:
+            # Safety rollback to clear aborted transaction state if any DB error occurred
+            try:
+                self.db.conn.rollback()
+            except Exception:
+                pass
+            raise
+
     # Utilitaire pour retrouver le nom d'une entité à partir de son id et d'une liste
     def _get_nom_from_id(self, id_value, entity_list, id_key, nom_key):
         if not id_value or not entity_list:
@@ -76,5 +150,21 @@ class PieceService:
         return ""
 
     def delete_piece(self, id_piece):
-        self.extension_service.delete_extension(id_piece)
-        self.repo.delete_piece(id_piece)
+        try:
+            # Pré-contrôle: si des références existent, on arrête et on remonte un message clair
+            blockers = self.get_delete_blockers(id_piece)
+            if sum(blockers.values()) > 0:
+                raise RuntimeError(self.format_blockers_message(blockers))
+
+            self.extension_service.delete_extension(id_piece)
+            self.repo.delete_piece(id_piece)
+        except Exception as e:
+            # Always rollback to clear aborted transaction state
+            try:
+                self.db.conn.rollback()
+            except Exception:
+                pass
+            # Map FK violations to a user-friendly error
+            if pg_errors and isinstance(e, pg_errors.ForeignKeyViolation) or e.__class__.__name__ == 'ForeignKeyViolation':
+                raise RuntimeError("Cannot delete this part because it is referenced by other records (e.g., interventions). Remove those links first.") from e
+            raise

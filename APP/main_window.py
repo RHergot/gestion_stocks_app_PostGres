@@ -96,7 +96,8 @@ class MainWindow(QMainWindow):
         self.fournisseur_table_view.show()
 
     def show_pieces(self):
-        self.piece_table_view = PieceTableView(self.piece_service, parent=None)
+        # Pass self as parent so PieceTableView can access services via self.parent()
+        self.piece_table_view = PieceTableView(self.piece_service, parent=self)
         self.piece_table_view.show()
 
     def show_emplacements(self):

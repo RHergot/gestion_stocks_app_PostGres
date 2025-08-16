@@ -58,3 +58,15 @@ class PieceRepository:
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("DELETE FROM PIECE WHERE id_piece = %s;", (id_piece,))
             self.db.conn.commit()
+
+    def set_statut(self, id_piece: int, statut: str):
+        with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                """
+                UPDATE piece
+                SET statut = %s, updated_at = NOW()
+                WHERE id_piece = %s;
+                """,
+                (statut, id_piece)
+            )
+            self.db.conn.commit()

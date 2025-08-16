@@ -1,7 +1,9 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QPushButton, QHBoxLayout, QHeaderView, QMessageBox, QDialog, QMenuBar, QMenu
 from PySide6.QtGui import QAction
+from PySide6.QtCore import Qt
 from APP.services.piece_service import PieceService
 from .piece_dialog import PieceDialog
+from .piece_delete_dialog import PieceDeleteDialog
 
 class PieceTableView(QWidget):
     def __init__(self, piece_service: PieceService, parent=None):
@@ -56,6 +58,10 @@ class PieceTableView(QWidget):
             btn_layout.addWidget(btn)
         layout.addLayout(btn_layout)
         self.setLayout(layout)
+        # Ensure this widget behaves as a top-level window (movable/resizable)
+        # even if it has a parent (we use parent to access services).
+        self.setWindowFlags(self.windowFlags() | Qt.Window)
+        self.setWindowModality(Qt.NonModal)
         self.add_btn.clicked.connect(self.add_piece)
         self.edit_btn.clicked.connect(self.edit_piece)
         self.delete_btn.clicked.connect(self.delete_piece)
@@ -231,7 +237,6 @@ class PieceTableView(QWidget):
         if not piece:
             QMessageBox.warning(self, self.tr("No part selected"), self.tr("Please select a part to delete."))
             return
-        confirm = QMessageBox.question(self, self.tr("Confirm deletion"), self.tr(f"Delete part '{piece['nom']}'?"), QMessageBox.Yes | QMessageBox.No)
-        if confirm == QMessageBox.Yes:
-            self.piece_service.delete_piece(piece["id_piece"])
+        dlg = PieceDeleteDialog(self, self.piece_service, piece)
+        if dlg.exec() == QDialog.Accepted:
             self.refresh()

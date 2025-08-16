@@ -194,6 +194,7 @@ class MouvementTableView(QWidget):
         self.new_exit_btn = QPushButton(self.tr("New Exit"))
         self.new_transfer_btn = QPushButton(self.tr("New Transfer"))
         self.inventory_btn = QPushButton(self.tr("Inventory Adjustment"))
+        self.move_to_waste_btn = QPushButton(self.tr("Move all to Waste"))
         
         # Nouveaux boutons pour workflow de réception
         self.new_reception_btn = QPushButton(self.tr("Receive Parts"))
@@ -209,6 +210,7 @@ class MouvementTableView(QWidget):
         self.new_exit_btn.setStyleSheet("QPushButton { background-color: #f44336; color: white; }")
         self.new_transfer_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; }")
         self.inventory_btn.setStyleSheet("QPushButton { background-color: #FF9800; color: white; }")
+        self.move_to_waste_btn.setStyleSheet("QPushButton { background-color: #795548; color: white; }")
         
         # Style des nouveaux boutons de workflow réception
         self.new_reception_btn.setStyleSheet("QPushButton { background-color: #9C27B0; color: white; }")
@@ -220,7 +222,7 @@ class MouvementTableView(QWidget):
         # Première ligne - opérations traditionnelles
         first_row = QHBoxLayout()
         for btn in [self.new_entry_btn, self.new_exit_btn, self.new_transfer_btn, 
-                   self.inventory_btn]:
+                   self.inventory_btn, self.move_to_waste_btn]:
             first_row.addWidget(btn)
         
         # Deuxième ligne - workflow réception + actions
@@ -286,6 +288,7 @@ class MouvementTableView(QWidget):
         self.new_exit_btn.clicked.connect(self.new_exit)
         self.new_transfer_btn.clicked.connect(self.new_transfer)
         self.inventory_btn.clicked.connect(self.inventory_adjustment)
+        self.move_to_waste_btn.clicked.connect(self.move_all_to_waste)
         
         # Nouveaux boutons workflow réception
         self.new_reception_btn.clicked.connect(self.new_reception)
@@ -688,6 +691,176 @@ class MouvementTableView(QWidget):
         # TODO: Implémenter la génération de rapport
         QMessageBox.information(self, self.tr("Information"), 
                               self.tr("Report feature to be implemented"))
+
+    def show_low_stock(self):
+        """Shows a simple report of parts with low stock"""
+        try:
+            result = self.mouvement_controller.obtenir_pieces_stock_faible()
+            if result.get('success'):
+                pieces = result.get('pieces', []) or []
+                if not pieces:
+                    QMessageBox.information(self, self.tr("Low stock"), self.tr("No low stock parts."))
+                    return
+
+                # Build a concise list (limit to first 50 items for readability)
+                lines = []
+                for p in pieces[:50]:
+                    ref = p.get('reference', '')
+                    nom = p.get('nom', '')
+                    stock = p.get('stock_actuel') if p.get('stock_actuel') is not None else p.get('stock', '')
+                    seuil = p.get('seuil_alerte') if p.get('seuil_alerte') is not None else p.get('seuil', '')
+                    lines.append(f"- {ref} - {nom}: {stock} (threshold: {seuil})")
+
+                details = "<br>".join(lines)
+                header = self.tr(f"{len(pieces)} part(s) with low stock:")
+                QMessageBox.information(self, self.tr("Low stock parts"), f"{header}<br><br>{details}")
+            else:
+                QMessageBox.critical(self, self.tr("Error"), result.get('error', 'Unknown error'))
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Error"), str(e))
+
+    # === Reception Workflow ===
+    def new_reception(self):
+        """New parts reception"""
+        try:
+            pieces = self.mouvement_controller.obtenir_pieces_disponibles()
+            types_reception = self.mouvement_controller.obtenir_types_mouvement('neutre')
+            emplacements = self.mouvement_controller.obtenir_emplacements_disponibles()
+            
+            dialog = ReceptionWorkflowDialog(self, pieces, types_reception, emplacements)
+            if dialog.exec() == QDialog.Accepted:
+                data = dialog.get_data()
+                result = self.mouvement_controller.effectuer_reception_achat(**data)
+                
+                if result['success']:
+                    QMessageBox.information(self, self.tr("Success"), 
+                                          self.tr(f"Reception completed: {result['message']}"))
+                    self.refresh_data()
+                else:
+                    QMessageBox.critical(self, self.tr("Error"), result['message'])
+                    
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error during reception: {e}"))
+
+    def mise_en_stock(self):
+        """Put in stock from reception"""
+        try:
+            pieces = self.mouvement_controller.obtenir_pieces_disponibles()
+            emplacements = self.mouvement_controller.obtenir_emplacements_disponibles()
+            
+            dialog = MiseEnStockDialog(self, pieces, emplacements)
+            if dialog.exec() == QDialog.Accepted:
+                data = dialog.get_data()
+                result = self.mouvement_controller.effectuer_mise_en_stock(**data)
+                
+                if result['success']:
+                    QMessageBox.information(self, self.tr("Success"), 
+                                          self.tr(f"Put in stock completed: {result['message']}"))
+                    self.refresh_data()
+                else:
+                    QMessageBox.critical(self, self.tr("Error"), result['message'])
+                    
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Error"), 
+                               self.tr(f"Error during put in stock: {e}"))
+
+    # === Move all to Waste ===
+    def move_all_to_waste(self):
+        """Open a small dialog to select part and destination 'waste' emplacement, then transfer all stock there."""
+        try:
+            pieces = self.mouvement_controller.obtenir_pieces_disponibles()
+            emplacements = self.mouvement_controller.obtenir_emplacements_disponibles()
+
+            dialog = MoveToWasteDialog(self, pieces, emplacements)
+            if dialog.exec() == QDialog.Accepted:
+                data = dialog.get_data()
+                piece_id = data.get('piece_id')
+                dest_id = data.get('emplacement_destination_id')
+                if not piece_id or not dest_id:
+                    QMessageBox.warning(self, self.tr("Validation"), self.tr("Please select a part and a destination location."))
+                    return
+                result = self.mouvement_controller.transferer_tout_vers_emplacement(
+                    piece_id=piece_id,
+                    emplacement_destination_id=dest_id,
+                    commentaire='Move all stock to Waste')
+                if result.get('success'):
+                    count = result.get('count', 0)
+                    QMessageBox.information(self, self.tr("Success"), self.tr(f"Moved from {count} location(s) to Waste."))
+                    self.refresh_data()
+                else:
+                    QMessageBox.critical(self, self.tr("Error"), result.get('message', 'Error during transfer'))
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Error"), self.tr(f"Error during move to waste: {e}"))
+
+class MoveToWasteDialog(QDialog):
+    def __init__(self, parent, pieces, emplacements):
+        super().__init__(parent)
+        self.pieces = pieces or []
+        self.emplacements = emplacements or []
+        self.setWindowTitle(self.tr("Move all stock to Waste"))
+        self.resize(480, 220)
+
+        layout = QVBoxLayout(self)
+        form = QFormLayout()
+
+        # Part selection
+        self.piece_combo = QComboBox()
+        self.piece_combo.addItem(self.tr("Select a part..."), None)
+        for p in self.pieces:
+            text = f"{p['reference']} - {p['nom']} (Stock: {p.get('stock_actuel', 0)})"
+            self.piece_combo.addItem(text, p['id_piece'])
+        form.addRow(self.tr("Part:"), self.piece_combo)
+
+        # Destination emplacement selection (prefilter)
+        self.dest_combo = QComboBox()
+        candidates = self._filter_waste_candidates(self.emplacements)
+        self.dest_combo.addItem(self.tr("Select destination..."), None)
+        for e in candidates:
+            label = e['nom']
+            if e.get('allee'):
+                label += f" - {e['allee']}"
+            self.dest_combo.addItem(label, e['id'])
+        form.addRow(self.tr("Destination location:"), self.dest_combo)
+
+        layout.addLayout(form)
+
+        btns = QHBoxLayout()
+        self.ok_btn = QPushButton(self.tr("Validate"))
+        self.cancel_btn = QPushButton(self.tr("Cancel"))
+        self.ok_btn.clicked.connect(self._on_validate)
+        self.cancel_btn.clicked.connect(self.reject)
+        btns.addStretch(1)
+        btns.addWidget(self.ok_btn)
+        btns.addWidget(self.cancel_btn)
+        layout.addLayout(btns)
+
+        # Preselect first candidate if any
+        if candidates:
+            self.dest_combo.setCurrentIndex(1)
+
+    def _filter_waste_candidates(self, emplacements):
+        """Return emplacements whose name looks like waste/poubelle/dechet (case-insensitive)."""
+        needles = ['waste', 'poubelle', 'déchet', 'dechet', 'scrap']
+        result = []
+        for e in emplacements:
+            name = (e.get('nom') or '').lower()
+            if any(n in name for n in needles):
+                result.append(e)
+        # Fallback to all if none matched
+        return result or emplacements
+
+    def _on_validate(self):
+        if not self.piece_combo.currentData() or not self.dest_combo.currentData():
+            QMessageBox.warning(self, self.tr("Validation"), self.tr("Please select a part and a destination location."))
+            return
+        self.accept()
+
+    def get_data(self):
+        return {
+            'piece_id': self.piece_combo.currentData(),
+            'emplacement_destination_id': self.dest_combo.currentData(),
+        }
 
     def show_low_stock(self):
         """Shows parts with low stock"""
