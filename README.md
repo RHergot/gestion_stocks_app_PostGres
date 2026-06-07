@@ -2,6 +2,10 @@
 
 Module de **gestion des stocks et pièces détachées** intégré à la suite GMAO Industrielle. Développé avec **PySide6 (Qt)** et **PostgreSQL**.
 
+> ⚠️ **Ce module dépend de l'application principale.**
+> Il partage la même base de données PostgreSQL que [`gmao_app_PostGres`](https://github.com/RHergot/gmao_app_PostGres).
+> Installez et initialisez d'abord l'app principale avant d'utiliser ce module.
+
 ## Fonctionnalités
 
 - 📦 **Catalogue pièces** — Références, catégories, statuts, unités
