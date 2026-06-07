@@ -45,3 +45,9 @@ python APP/main.py
 ## Licence
 
 MIT — voir [LICENSE](LICENSE)
+
+## 🗄️ Base de données
+
+Ce module partage la base `gmao_industrie_data` avec l'app principale. Schéma complet dans [`gmao_app_PostGres/docs/database-schema.md`](https://github.com/RHergot/gmao_app_PostGres/blob/main/docs/database-schema.md).
+
+Fichier SQL de référence : [`database/database_complete_consolidated.sql`](database/database_complete_consolidated.sql)
