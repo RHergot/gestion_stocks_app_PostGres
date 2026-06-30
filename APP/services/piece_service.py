@@ -55,6 +55,19 @@ class PieceService:
         return self.repo.get_piece_by_id(id_piece)
 
     def add_piece(self, piece):
+        # Validation des champs obligatoires
+        required = ["reference", "nom", "unite"]
+        for field in required:
+            if not piece.get(field):
+                raise ValueError(f"Champ obligatoire manquant : {field}")
+        # Validation des types numériques
+        for num_field in ["prix_unitaire", "stock_alerte", "stock_actuel", "stock_reserve"]:
+            val = piece.get(num_field)
+            if val is not None:
+                try:
+                    piece[num_field] = float(val)
+                except (TypeError, ValueError):
+                    raise ValueError(f"Valeur invalide pour {num_field} : {val}")
         # Séparer les champs extension
         extension = {
             "unite_id": piece.get("unite_id"),

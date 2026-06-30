@@ -6,6 +6,12 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
+# NOTE — Pattern d'accès DB recommandé :
+#   Préférer db.execute(query, params) qui gère automatiquement le curseur et les commits.
+#   Éviter db.conn.cursor() directement dans les repositories/services.
+#   Le pattern db.execute() offre : RealDictCursor automatique, commit/rollback géré,
+#   et une interface uniforme pour toute l'application.
+
 class Database:
     def __init__(self):
         self.conn = None
