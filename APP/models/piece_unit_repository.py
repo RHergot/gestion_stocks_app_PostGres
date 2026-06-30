@@ -5,7 +5,7 @@ class PieceUnitRepository:
     def __init__(self, db: Database):
         self.db = db
 
-    def get_all_units(self):
+    def list_units(self):
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM piece_unit ORDER BY nom;")
             return cur.fetchall()
@@ -15,7 +15,7 @@ class PieceUnitRepository:
             cur.execute("SELECT * FROM piece_unit WHERE id = %s;", (id,))
             return cur.fetchone()
 
-    def add_unit(self, unit):
+    def create_unit(self, unit):
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 "INSERT INTO piece_unit (nom, description) VALUES (%s, %s) RETURNING id;",

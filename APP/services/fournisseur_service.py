@@ -4,14 +4,14 @@ class FournisseurService:
     def __init__(self, db):
         self.repo = FournisseurRepository(db)
 
-    def get_all_fournisseurs(self):
-        return self.repo.get_all_fournisseurs()
+    def list_fournisseurs(self):
+        return self.repo.list_fournisseurs()
 
     def get_fournisseur_by_id(self, id_fournisseur):
         return self.repo.get_fournisseur_by_id(id_fournisseur)
 
-    def add_fournisseur(self, fournisseur):
-        return self.repo.add_fournisseur(fournisseur)
+    def create_fournisseur(self, fournisseur):
+        return self.repo.create_fournisseur(fournisseur)
 
     def update_fournisseur(self, id_fournisseur, fournisseur):
         self.repo.update_fournisseur(id_fournisseur, fournisseur)

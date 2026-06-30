@@ -134,11 +134,11 @@ class PieceTableView(QWidget):
         self.set_pieces_table(pieces)
 
     def add_piece(self):
-        fournisseurs = self.parent().fournisseur_service.get_all_fournisseurs()
-        unites = self.parent().piece_unit_service.get_all_units()
-        categories = self.parent().piece_category_service.get_all_categories()
+        fournisseurs = self.parent().fournisseur_service.list_fournisseurs()
+        unites = self.parent().piece_unit_service.list_units()
+        categories = self.parent().piece_category_service.list_categories()
         emplacements = self.parent().emplacement_service.get_all_emplacements()
-        statuts = self.parent().piece_statut_service.get_all_statuts()
+        statuts = self.parent().piece_statut_service.list_statuts()
         machines = self.parent().machine_service.list_machines()
         # Stocker les listes pour le service
         self.piece_service.parent_unit_list = unites
@@ -158,11 +158,11 @@ class PieceTableView(QWidget):
         if not piece:
             QMessageBox.warning(self, self.tr("No part selected"), self.tr("Please select a part to edit."))
             return
-        fournisseurs = self.parent().fournisseur_service.get_all_fournisseurs()
-        unites = self.parent().piece_unit_service.get_all_units()
-        categories = self.parent().piece_category_service.get_all_categories()
+        fournisseurs = self.parent().fournisseur_service.list_fournisseurs()
+        unites = self.parent().piece_unit_service.list_units()
+        categories = self.parent().piece_category_service.list_categories()
         emplacements = self.parent().emplacement_service.get_all_emplacements()
-        statuts = self.parent().piece_statut_service.get_all_statuts()
+        statuts = self.parent().piece_statut_service.list_statuts()
         machines = self.parent().machine_service.list_machines()
         # Stocker les listes pour le service
         self.piece_service.parent_unit_list = unites

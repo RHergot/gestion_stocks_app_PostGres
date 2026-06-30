@@ -5,7 +5,7 @@ class PieceStatutRepository:
     def __init__(self, db: Database):
         self.db = db
 
-    def get_all_statuts(self):
+    def list_statuts(self):
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM piece_statut ORDER BY nom;")
             return cur.fetchall()
@@ -15,7 +15,7 @@ class PieceStatutRepository:
             cur.execute("SELECT * FROM piece_statut WHERE id = %s;", (id,))
             return cur.fetchone()
 
-    def add_statut(self, statut):
+    def create_statut(self, statut):
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 "INSERT INTO piece_statut (nom, description) VALUES (%s, %s) RETURNING id;",

@@ -5,7 +5,7 @@ class PieceCategoryRepository:
     def __init__(self, db: Database):
         self.db = db
 
-    def get_all_categories(self):
+    def list_categories(self):
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM piece_category ORDER BY nom;")
             return cur.fetchall()
@@ -15,7 +15,7 @@ class PieceCategoryRepository:
             cur.execute("SELECT * FROM piece_category WHERE id = %s;", (id,))
             return cur.fetchone()
 
-    def add_category(self, category):
+    def create_category(self, category):
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 "INSERT INTO piece_category (nom, description) VALUES (%s, %s) RETURNING id;",

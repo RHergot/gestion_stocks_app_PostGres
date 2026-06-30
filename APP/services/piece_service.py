@@ -27,14 +27,14 @@ class PieceService:
     @property
     def parent_unit_list(self):
         if self._parent_unit_list is None:
-            units = PieceUnitRepository(self.db).get_all_units()
+            units = PieceUnitRepository(self.db).list_units()
             self._parent_unit_list = {u['id']: u['nom'] for u in units}
         return self._parent_unit_list
 
     @property
     def parent_category_list(self):
         if self._parent_category_list is None:
-            cats = PieceCategoryRepository(self.db).get_all_categories()
+            cats = PieceCategoryRepository(self.db).list_categories()
             self._parent_category_list = {c['id']: c['nom'] for c in cats}
         return self._parent_category_list
 
@@ -48,7 +48,7 @@ class PieceService:
     @property
     def parent_statut_list(self):
         if self._parent_statut_list is None:
-            stats = PieceStatutRepository(self.db).get_all_statuts()
+            stats = PieceStatutRepository(self.db).list_statuts()
             self._parent_statut_list = {s['id']: s['nom'] for s in stats}
         return self._parent_statut_list
 

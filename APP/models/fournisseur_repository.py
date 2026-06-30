@@ -5,7 +5,7 @@ class FournisseurRepository:
     def __init__(self, db: Database):
         self.db = db
 
-    def get_all_fournisseurs(self):
+    def list_fournisseurs(self):
         try:
             with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute("SELECT * FROM FOURNISSEUR ORDER BY nom;")
@@ -20,7 +20,7 @@ class FournisseurRepository:
             cur.execute("SELECT * FROM FOURNISSEUR WHERE id_fournisseur = %s;", (id_fournisseur,))
             return cur.fetchone()
 
-    def add_fournisseur(self, fournisseur):
+    def create_fournisseur(self, fournisseur):
         try:
             with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(
