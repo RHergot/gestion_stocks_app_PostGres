@@ -7,6 +7,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class CommandeRepository:
+    # Colonnes autorisées pour les requêtes dynamiques (INSERT/UPDATE)
+    # Toute colonne interpolée dans une requête DOIT figurer dans cette liste.
+    ALLOWED_COLUMNS = frozenset({
+        'numero_commande', 'fournisseur_id', 'createur_id', 'date_commande',
+        'date_livraison_prevue', 'date_livraison_reelle', 'statut', 'total_ht',
+        'frais_port', 'reference_fournisseur', 'mode_paiement', 'notes_commande',
+        'updated_at',
+    })
+
     def __init__(self, db):
         self.db = db
         self._default_user_id = None  # Cache pour l'ID de l'utilisateur par défaut
@@ -70,6 +79,10 @@ class CommandeRepository:
         
         # Filtrer les champs qui sont dans les données
         fields = [f for f in fields if f in commande_data]
+        # Validation de sécurité : tous les champs doivent être dans la whitelist
+        for f in fields:
+            if f not in self.ALLOWED_COLUMNS:
+                raise ValueError(f"Colonne non autorisée dans INSERT commande: {f}")
         
         # Créer les placeholders pour la requête
         placeholders = [f'%({f})s' for f in fields]
@@ -139,6 +152,10 @@ class CommandeRepository:
         commande_data['updated_at'] = datetime.now()
         # On ne garde que les champs scalaires autorisés
         cleaned_data = {k: v for k, v in commande_data.items() if k in champs_commande}
+        # Validation de sécurité : tous les champs doivent être dans la whitelist
+        for k in cleaned_data:
+            if k not in self.ALLOWED_COLUMNS:
+                raise ValueError(f"Colonne non autorisée dans UPDATE commande: {k}")
         # Prépare la requête
         set_clause = ", ".join([f"{k} = %({k})s" for k in cleaned_data.keys()])
         query = f"""

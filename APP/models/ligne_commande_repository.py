@@ -7,6 +7,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class LigneCommandeRepository:
+    # Colonnes autorisées pour les requêtes UPDATE dynamiques
+    ALLOWED_COLUMNS = frozenset({
+        'piece_id', 'description_libre', 'quantite_commandee', 'prix_unitaire_ht',
+        'quantite_recue', 'quantite_defectueuse', 'commentaire_reception', 'statut_ligne',
+    })
+
     def __init__(self, db):
         self.db = db
 
@@ -173,7 +179,14 @@ class LigneCommandeRepository:
             
         if not set_clauses:
             return False
-            
+
+        # Validation de sécurité : les noms de colonnes dans set_clauses proviennent
+        # de chaînes hardcodées (lignes 137-173) — vérification paranoïaque.
+        for clause in set_clauses:
+            col_name = clause.split(' = ')[0]
+            if col_name not in self.ALLOWED_COLUMNS:
+                raise ValueError(f"Colonne non autorisée dans UPDATE ligne_commande: {col_name}")
+
         query = f"""
             UPDATE ligne_commande 
             SET {', '.join(set_clauses)}
