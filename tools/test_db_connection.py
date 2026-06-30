@@ -107,11 +107,14 @@ def main():
     # Charger les variables d'environnement depuis .env
     load_dotenv(env_path, override=True)
     
-    # Afficher les variables chargées pour le débogage
+    # Afficher les variables chargées pour le débogage (mot de passe masqué)
     print("\nVariables d'environnement chargées :")
     for key, value in os.environ.items():
         if key.startswith('POSTGRES_'):
-            print(f"{key} = {value}")
+            if 'PASSWORD' in key.upper():
+                print(f"{key} = ***")
+            else:
+                print(f"{key} = {value}")
     
     # Récupération des paramètres de connexion
     host = os.getenv('POSTGRES_HOST')

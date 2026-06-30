@@ -23,7 +23,10 @@ class Database:
         print("\nVariables d'environnement chargées :")
         for key, value in os.environ.items():
             if key.startswith('POSTGRES_'):
-                print(f"{key} = {value}")
+                if 'PASSWORD' in key.upper():
+                    print(f"{key} = ***")
+                else:
+                    print(f"{key} = {value}")
         print()
         
         # Récupération des paramètres de connexion

@@ -1,5 +1,8 @@
 # Fichiers d'environnement
 .env
+.env_old
+.env.*
+*.env_*
 
 # Fichiers Python
 __pycache__/
