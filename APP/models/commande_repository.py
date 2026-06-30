@@ -16,7 +16,6 @@ class CommandeRepository:
 
     def __init__(self, db):
         self.db = db
-        self._default_user_id = None  # Cache pour l'ID de l'utilisateur par défaut
 
     def get_all_commandes(self):
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -297,9 +296,6 @@ class CommandeRepository:
             int or None: L'ID de l'utilisateur Admin, ou None si aucun admin n'existe.
             L'admin doit être créé via l'interface utilisateur (avec mot de passe haché).
         """
-        if self._default_user_id:
-            return self._default_user_id
-            
         with self.db.conn.cursor() as cur:
             try:
                 # Vérifie si l'utilisateur Admin existe
@@ -312,9 +308,8 @@ class CommandeRepository:
                 result = cur.fetchone()
                 
                 if result:
-                    self._default_user_id = result[0]
-                    logger.info(f"Utilisateur Admin trouvé avec l'ID: {self._default_user_id}")
-                    return self._default_user_id
+                    logger.debug("Utilisateur Admin trouvé avec l'ID: %s", result[0])
+                    return result[0]
                     
                 # Pas d'auto-création — l'admin doit être créé explicitement
                 logger.warning("Aucun utilisateur Admin trouvé. Créez un compte admin via l'interface.")

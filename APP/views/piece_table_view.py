@@ -39,11 +39,11 @@ class PieceTableView(QWidget):
         selection_menu.addAction(par_statut_action)
         layout.addWidget(self.menu_bar)
         self.table = QTableWidget(self)
-        self.table.setColumnCount(12)
+        self.table.setColumnCount(13)
         self.table.setHorizontalHeaderLabels([
             self.tr("ID"), self.tr("Reference"), self.tr("Name"), self.tr("Preferred Supplier"), self.tr("Unit Price"),
             self.tr("Alert Stock"), self.tr("Current Stock"), self.tr("Reserved Stock"), self.tr("Unit"), self.tr("Category"),
-            self.tr("Location"), self.tr("Status")
+            self.tr("Location"), self.tr("Status"), self.tr("Machine")
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSortingEnabled(True)

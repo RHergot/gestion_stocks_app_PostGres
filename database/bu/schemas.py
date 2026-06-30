@@ -243,7 +243,7 @@ TABLES: Dict[str, str] = {
             id_type_mouvement INTEGER PRIMARY KEY AUTOINCREMENT,
             nom TEXT NOT NULL UNIQUE,
             description TEXT,
-            impact_stock INTEGER NOT NULL CHECK (impact_stock IN (-1, 1)), -- -1 pour sortie, 1 pour entrée
+            impact_stock INTEGER NOT NULL CHECK (impact_stock IN (-1, 0, 1)), -- -1 pour sortie, 1 pour entrée
             actif INTEGER DEFAULT 1,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );

@@ -8,7 +8,7 @@ from APP.services.machine_service import MachineService
 from APP.services.mouvement_service import MouvementService
 try:
     from psycopg2 import errors as pg_errors
-except Exception:  # pragma: no cover - fallback if psycopg2 not available in some contexts
+except ImportError:  # pragma: no cover - fallback if psycopg2 not available
     pg_errors = None
 
 class PieceService:
@@ -168,7 +168,7 @@ class PieceService:
             try:
                 self.db.conn.rollback()
             except Exception:
-                pass
+                logger.debug("Rollback ignoré (transaction probablement déjà fermée)")
             raise
 
     def clear_piece_stocks(self, id_piece: int, utilisateur_id: int = None, commentaire: str = None) -> int:
@@ -183,7 +183,7 @@ class PieceService:
             try:
                 self.db.conn.rollback()
             except Exception:
-                pass
+                logger.debug("Rollback ignoré (transaction probablement déjà fermée)")
             raise
 
     # Utilitaire pour retrouver le nom d'une entité à partir de son id et d'une liste
@@ -209,7 +209,7 @@ class PieceService:
             try:
                 self.db.conn.rollback()
             except Exception:
-                pass
+                logger.debug("Rollback ignoré (transaction probablement déjà fermée)")
             # Map FK violations to a user-friendly error
             if pg_errors and isinstance(e, pg_errors.ForeignKeyViolation) or e.__class__.__name__ == 'ForeignKeyViolation':
                 raise RuntimeError("Cannot delete this part because it is referenced by other records (e.g., interventions). Remove those links first.") from e

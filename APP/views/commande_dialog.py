@@ -456,33 +456,39 @@ class CommandeDialog(QDialog):
                 self.del_ligne_btn.setEnabled(True)
     
     def get_lignes_data(self):
-        """Retourne une liste des lignes de commande"""
+        """Retourne une liste des lignes de commande avec extraction robuste."""
         lignes = []
         for row in range(self.lignes_table.rowCount()):
-            data = self.lignes_table.item(row, 0).data(Qt.UserRole)
-            if data:
-                # Extraction robuste des primitives
-                # Extraction robuste de l'identifiant de la pièce
-                if isinstance(data['piece_id'], dict):
-                    piece_id = data['piece_id'].get('piece_id') or data['piece_id'].get('id_piece')
-                else:
-                    piece_id = data['piece_id']
-                quantite = data['quantite_commandee']
-                if isinstance(quantite, dict):
-                    quantite = list(quantite.values())[0]
-                prix_unitaire = data['prix_unitaire_ht']
-                if isinstance(prix_unitaire, dict):
-                    prix_unitaire = list(prix_unitaire.values())[0]
-                description = data.get('description_libre', None)
-                if isinstance(description, dict):
-                    description = list(description.values())[0]
-                ligne_data = {
-                    'piece_id': piece_id,
-                    'quantite_commandee': quantite,
-                    'prix_unitaire_ht': float(prix_unitaire),
-                    'description_libre': description or None
-                }
-                lignes.append({k: v for k, v in ligne_data.items() if v is not None})
+            piece_data = self.lignes_table.item(row, 0).data(Qt.UserRole)
+            
+            # Extraction robuste de piece_id (gère dicts imbriqués)
+            if isinstance(piece_data, dict):
+                piece_id = piece_data.get('piece_id')
+                if isinstance(piece_id, dict):
+                    piece_id = piece_id.get('id_piece') or piece_id.get('piece_id')
+            else:
+                piece_id = piece_data
+            
+            # Extraction des données de cellule avec fallback sur UserRole
+            quantite = self.lignes_table.item(row, 2)
+            prix_text = self.lignes_table.item(row, 3)
+            
+            quantite_val = int(quantite.text()) if quantite else (
+                piece_data.get('quantite_commandee', 0) if isinstance(piece_data, dict) else 0
+            )
+            prix_val = float(prix_text.text().replace('€', '').strip()) if prix_text else (
+                float(piece_data.get('prix_unitaire_ht', 0)) if isinstance(piece_data, dict) else 0.0
+            )
+            
+            ligne = {
+                'piece_id': piece_id,
+                'piece_reference': self.lignes_table.item(row, 0).text() if self.lignes_table.item(row, 0) else '',
+                'piece_nom': self.lignes_table.item(row, 1).text() if self.lignes_table.item(row, 1) else '',
+                'quantite_commandee': quantite_val,
+                'prix_unitaire_ht': prix_val,
+                'description_libre': piece_data.get('description_libre', '') if isinstance(piece_data, dict) else ''
+            }
+            lignes.append(ligne)
         return lignes
     
     def edit_ligne(self):
@@ -609,34 +615,7 @@ class CommandeDialog(QDialog):
             data['id_commande'] = self.commande_data['id_commande']
         
         return data
-    
-    def get_lignes_data(self):
-        """Return a list of order lines"""
-        lignes = []
-        for row in range(self.lignes_table.rowCount()):
-            # Retrieve raw part data
-            piece_data = self.lignes_table.item(row, 0).data(Qt.UserRole)
-            
-            # If piece_data is a dict, extract the ID
-            if isinstance(piece_data, dict):
-                piece_id = piece_data.get('piece_id')
-                # If piece_id is a dict, extract ID from it
-                if isinstance(piece_id, dict):
-                    piece_id = piece_id.get('id_piece') or piece_id.get('piece_id')
-            else:
-                piece_id = piece_data
-            
-            ligne = {
-                'piece_id': piece_id,  # Correctly extracted part ID
-                'piece_reference': self.lignes_table.item(row, 0).text(),
-                'piece_nom': self.lignes_table.item(row, 1).text(),
-                'quantite_commandee': int(self.lignes_table.item(row, 2).text()),
-                'prix_unitaire_ht': float(self.lignes_table.item(row, 3).text().replace('€', '').strip()),
-                'description_libre': piece_data.get('description_libre', '') if isinstance(piece_data, dict) else ''
-            }
-            lignes.append(ligne)
-        return lignes
-    
+
     def update_status_buttons(self):
         """Update visibility and state of buttons based on current status"""
         if not self.is_editing:

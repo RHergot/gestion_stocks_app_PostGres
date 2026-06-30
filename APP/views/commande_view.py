@@ -66,6 +66,13 @@ class CommandeTableModel(QAbstractTableModel):
         if not index.isValid():
             return None
             
+        if role == Qt.UserRole:
+            # Retourne l'ID de la commande pour la ligne (utilisé par select_commande)
+            row = index.row()
+            if row < len(self.commandes):
+                return self.commandes[row].get("id_commande")
+            return None
+
         if role == Qt.DisplayRole or role == Qt.EditRole:
             row = index.row()
             col = index.column()
@@ -171,6 +178,13 @@ class LigneCommandeTableModel(QAbstractTableModel):
         if not index.isValid():
             return None
             
+        if role == Qt.UserRole:
+            # Retourne l'ID de la commande pour la ligne (utilisé par select_commande)
+            row = index.row()
+            if row < len(self.commandes):
+                return self.commandes[row].get("id_commande")
+            return None
+
         if role == Qt.DisplayRole or role == Qt.EditRole:
             row = index.row()
             col = index.column()

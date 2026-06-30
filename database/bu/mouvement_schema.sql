@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS type_mouvement (
     id SERIAL PRIMARY KEY,
     nom VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
-    impact_stock INTEGER NOT NULL CHECK (impact_stock IN (-1, 1)), -- -1 pour sortie, 1 pour entrée
+    impact_stock INTEGER NOT NULL CHECK (impact_stock IN (-1, 0, 1)), -- -1 pour sortie, 1 pour entrée
     actif BOOLEAN DEFAULT TRUE
 );
 
