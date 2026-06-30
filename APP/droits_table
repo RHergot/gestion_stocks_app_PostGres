@@ -1,4 +1,4 @@
--- Remplacer 'stock_app' par votre utilisateur
+-- Remplacer 'gmao_app_user' par votre utilisateur si différent
 DO $$
 DECLARE
     r RECORD;
@@ -6,12 +6,12 @@ BEGIN
     -- Pour toutes les tables de votre schéma
     FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
     LOOP
-        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE %I TO stock_app;', r.tablename);
+        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE %I TO gmao_app_user;', r.tablename);
     END LOOP;
 
     -- Pour toutes les séquences (SERIAL)
     FOR r IN SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'public'
     LOOP
-        EXECUTE format('GRANT USAGE, SELECT ON SEQUENCE %I TO stock_app;', r.sequence_name);
+        EXECUTE format('GRANT USAGE, SELECT ON SEQUENCE %I TO gmao_app_user;', r.sequence_name);
     END LOOP;
 END $$;

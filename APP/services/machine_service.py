@@ -7,6 +7,9 @@ class MachineService:
     def list_machines(self):
         return self.repo.get_all_machines()
 
+    def get_machine_by_id(self, id_machine):
+        return self.repo.get_machine_by_id(id_machine)
+
     def create_machine(self, machine_data):
         return self.repo.add_machine(machine_data)
 

@@ -1107,29 +1107,16 @@ class CommandeView(QWidget):
             raise
     
     def _generer_nouveau_numero(self):
-        """Génère un nouveau numéro de commande unique"""
+        """Génère un nouveau numéro de commande unique (via SQL MAX pour O(1))."""
         try:
-            # Récupérer toutes les commandes pour trouver le prochain numéro
-            commandes = self.commande_repo.get_all_commandes()
-            
-            # Extraire les numéros numériques
-            numeros = []
-            for cmd in commandes:
-                try:
-                    numero = int(cmd['numero_commande'])
-                    numeros.append(numero)
-                except (ValueError, TypeError):
-                    continue
-            
-            # Générer le prochain numéro
-            if numeros:
-                prochain_numero = max(numeros) + 1
-            else:
-                prochain_numero = 1
-            
-            return str(prochain_numero)
-            
-        except Exception as e:
-            # En cas d'erreur, utiliser un timestamp
+            with self.db.conn.cursor() as cur:
+                cur.execute(
+                    "SELECT MAX(CAST(NULLIF(regexp_replace(numero_commande, '[^0-9]', '', 'g'), '') AS INTEGER)) "
+                    "FROM commande"
+                )
+                result = cur.fetchone()
+                max_num = result[0] if result and result[0] else 0
+            return str(max_num + 1)
+        except Exception:
             from datetime import datetime
             return f"CMD-{int(datetime.now().timestamp())}"

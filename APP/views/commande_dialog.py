@@ -857,31 +857,15 @@ class CommandeDialog(QDialog):
             raise
     
     def _generer_nouveau_numero(self):
-        """Generate a new unique order number"""
+        """Generate a new unique order number (via SQL MAX for O(1))."""
         try:
-            from ..models.commande_repository import CommandeRepository
-            repo = CommandeRepository(self.db)
-            
-            # Retrieve all orders to find the next number
-            commandes = repo.get_all_commandes()
-            
-            # Extract numeric numbers
-            numeros = []
-            for cmd in commandes:
-                try:
-                    numero = int(cmd['numero_commande'])
-                    numeros.append(numero)
-                except (ValueError, TypeError):
-                    continue
-            
-            # Generate next number
-            if numeros:
-                prochain_numero = max(numeros) + 1
-            else:
-                prochain_numero = 1
-            
-            return str(prochain_numero)
-            
-        except Exception as e:
-            # In case of error, use a timestamp
+            with self.db.conn.cursor() as cur:
+                cur.execute(
+                    "SELECT MAX(CAST(NULLIF(regexp_replace(numero_commande, '[^0-9]', '', 'g'), '') AS INTEGER)) "
+                    "FROM commande"
+                )
+                result = cur.fetchone()
+                max_num = result[0] if result and result[0] else 0
+            return str(max_num + 1)
+        except Exception:
             return f"CMD-{int(datetime.now().timestamp())}"

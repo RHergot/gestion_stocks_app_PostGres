@@ -2,6 +2,7 @@ from APP.services.mouvement_service import MouvementService
 from APP.services.piece_service import PieceService
 from APP.services.emplacement_service import EmplacementService
 from APP.services.user_service import UserService
+from APP.services.reception_workflow_service import ReceptionWorkflowService
 from datetime import datetime, date
 from typing import List, Dict, Optional
 import logging
@@ -368,7 +369,6 @@ class MouvementController:
     def get_pieces_en_reception(self) -> List[Dict]:
         """Récupère les pièces actuellement en zone de réception"""
         try:
-            from APP.services.reception_workflow_service import ReceptionWorkflowService
             reception_service = ReceptionWorkflowService(self.db)
             return reception_service.get_stock_en_reception()
         except Exception as e:

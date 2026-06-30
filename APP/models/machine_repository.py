@@ -6,6 +6,11 @@ class MachineRepository:
         query = "SELECT * FROM MACHINE ORDER BY id_machine"
         return self.db.execute(query)
 
+    def get_machine_by_id(self, id_machine):
+        query = "SELECT * FROM MACHINE WHERE id_machine = %s"
+        result = self.db.execute(query, (id_machine,))
+        return result[0] if result else None
+
     def add_machine(self, machine_data):
         query = """
             INSERT INTO MACHINE (

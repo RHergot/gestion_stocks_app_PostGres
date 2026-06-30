@@ -19,7 +19,12 @@ class MachineDialog(QDialog):
         from APP.models.type_machine_repository import TypeMachineRepository
         from APP.models.site_repository import SiteRepository
         from APP.models.fabricant_repository import FabricantRepository
-        db = parent.parent().db if parent and hasattr(parent, 'parent') and hasattr(parent.parent(), 'db') else None
+        # Récupérer db via la hiérarchie de widgets — préférer l'injection explicite
+        db = None
+        if parent is not None:
+            db = getattr(parent, 'db', None) or (
+                getattr(parent.parent(), 'db', None) if hasattr(parent, 'parent') else None
+            )
         self.type_machine_id = QComboBox(self)
         self.site_id = QComboBox(self)
         self.fabricant_id = QComboBox(self)

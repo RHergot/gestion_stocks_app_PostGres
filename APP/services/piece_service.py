@@ -27,25 +27,29 @@ class PieceService:
     @property
     def parent_unit_list(self):
         if self._parent_unit_list is None:
-            self._parent_unit_list = PieceUnitRepository(self.db).get_all_units()
+            units = PieceUnitRepository(self.db).get_all_units()
+            self._parent_unit_list = {u['id']: u['nom'] for u in units}
         return self._parent_unit_list
 
     @property
     def parent_category_list(self):
         if self._parent_category_list is None:
-            self._parent_category_list = PieceCategoryRepository(self.db).get_all_categories()
+            cats = PieceCategoryRepository(self.db).get_all_categories()
+            self._parent_category_list = {c['id']: c['nom'] for c in cats}
         return self._parent_category_list
 
     @property
     def parent_emplacement_list(self):
         if self._parent_emplacement_list is None:
-            self._parent_emplacement_list = EmplacementRepository(self.db).get_all_emplacements()
+            empls = EmplacementRepository(self.db).get_all_emplacements()
+            self._parent_emplacement_list = {e['id']: e['nom'] for e in empls}
         return self._parent_emplacement_list
 
     @property
     def parent_statut_list(self):
         if self._parent_statut_list is None:
-            self._parent_statut_list = PieceStatutRepository(self.db).get_all_statuts()
+            stats = PieceStatutRepository(self.db).get_all_statuts()
+            self._parent_statut_list = {s['id']: s['nom'] for s in stats}
         return self._parent_statut_list
 
     def get_all_pieces(self):
@@ -82,14 +86,11 @@ class PieceService:
         piece["categorie"] = self._get_nom_from_id(extension["categorie_id"], self.parent_category_list, "id", "nom")
         piece["emplacement_stockage"] = self._get_nom_from_id(extension["emplacement_id"], self.parent_emplacement_list, "id", "nom")
         piece["statut"] = self._get_nom_from_id(extension["statut_id"], self.parent_statut_list, "id", "nom")
-        # Machine (spécifique)
+        # Machine (spécifique) — lookup O(1) via repository
         machine_nom = None
         if extension["machine_id"]:
-            machines = self.machine_service.list_machines()
-            for m in machines:
-                if m["id_machine"] == extension["machine_id"]:
-                    machine_nom = m["nom"]
-                    break
+            machine = self.machine_service.get_machine_by_id(extension["machine_id"])
+            machine_nom = machine["nom"] if machine else ""
         piece["machine"] = machine_nom or ""
         id_piece = self.repo.add_piece(piece)
         self.extension_service.add_or_update_extension(id_piece, extension)
@@ -186,14 +187,12 @@ class PieceService:
                 logger.debug("Rollback ignoré (transaction probablement déjà fermée)")
             raise
 
-    # Utilitaire pour retrouver le nom d'une entité à partir de son id et d'une liste
-    def _get_nom_from_id(self, id_value, entity_list, id_key, nom_key):
-        if not id_value or not entity_list:
+    # Utilitaire pour retrouver le nom d'une entité à partir de son id et d'un dict {id: nom}
+    def _get_nom_from_id(self, id_value, entity_dict, id_key=None, nom_key=None):
+        """Lookup O(1) dans un dictionnaire pré-indexé {id: nom}."""
+        if not id_value or not entity_dict:
             return ""
-        for entity in entity_list:
-            if entity.get(id_key) == id_value:
-                return entity.get(nom_key, "")
-        return ""
+        return entity_dict.get(id_value, "")
 
     def delete_piece(self, id_piece):
         try:
