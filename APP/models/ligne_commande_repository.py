@@ -2,8 +2,6 @@ from psycopg2.extras import RealDictCursor
 import logging
 import traceback
 
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class LigneCommandeRepository:

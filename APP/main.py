@@ -4,8 +4,16 @@ Lance la fenêtre principale avec PySide6.
 """
 import sys
 import os
+import logging
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTranslator
+
+# Configuration centralisée du logging (un seul point de config pour toute l'app)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
 
 # Ajoute le dossier parent au PYTHONPATH si nécessaire
 current_dir = os.path.dirname(os.path.abspath(__file__))
