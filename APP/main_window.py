@@ -32,6 +32,7 @@ from APP.views.piece_unit_table_view import PieceUnitTableView
 from APP.controllers.mouvement_controller import MouvementController
 from APP.views.mouvement_table_view import MouvementTableView
 from APP.services.db import Database
+from APP.services.rapport_service import RapportService
 
 class MainWindow(QMainWindow):
     def __init__(self, db):
@@ -49,6 +50,7 @@ class MainWindow(QMainWindow):
         self.piece_statut_service = PieceStatutService(self.db)
         self.piece_unit_service = PieceUnitService(self.db)
         self.mouvement_controller = MouvementController(self.db)
+        self.rapport_service = RapportService(self.db)
         self.setWindowTitle(self.tr("Stock / CMMS Management"))
         self.setGeometry(0, 0, 1920, 1080)
         self._create_menu_bar()
@@ -210,71 +212,23 @@ class MainWindow(QMainWindow):
         self.user_table_view.show()
 
     def show_stock_faible(self):
-        with self.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT nom, reference, stock_actuel, stock_alerte
-                FROM piece
-                WHERE stock_actuel <= stock_alerte
-                ORDER BY stock_actuel ASC;
-            """)
-            rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]} ({r[1]}): {r[2]}/{r[3]}" for r in rows]) or "No parts with low stock."
+        msg = self.rapport_service.get_stock_faible()
         QMessageBox.information(self, self.tr("Parts with low stock"), msg)
 
     def show_pieces_by_machine(self):
-        with self.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT p.nom, p.reference, pe.machine_id, m.nom AS machine
-                FROM piece p
-                JOIN piece_extension pe ON p.id_piece = pe.id_piece
-                JOIN machine m ON pe.machine_id = m.id_machine
-                ORDER BY m.nom, p.nom;
-            """)
-            rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]} ({r[1]}): {r[3]}" for r in rows]) or "No parts linked to a machine."
+        msg = self.rapport_service.get_pieces_by_machine()
         QMessageBox.information(self, self.tr("Parts by machine"), msg)
 
     def show_inventaire_categorie(self):
-        with self.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT c.nom, COUNT(*), SUM(p.stock_actuel)
-                FROM piece p
-                JOIN piece_extension pe ON p.id_piece = pe.id_piece
-                JOIN piece_category c ON pe.categorie_id = c.id
-                GROUP BY c.nom
-                ORDER BY COUNT(*) DESC;
-            """)
-            rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]}: {r[1]} parts, {r[2]} in stock" for r in rows]) or "No category."
+        msg = self.rapport_service.get_inventaire_categorie()
         QMessageBox.information(self, self.tr("Inventory by category"), msg)
 
     def show_emplacements_vides(self):
-        with self.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT e.nom, COUNT(p.id_piece) AS nb_pieces
-                FROM emplacement e
-                LEFT JOIN piece_extension pe ON pe.emplacement_id = e.id
-                LEFT JOIN piece p ON pe.id_piece = p.id_piece
-                GROUP BY e.nom
-                HAVING COUNT(p.id_piece) < 5
-                ORDER BY nb_pieces ASC;
-            """)
-            rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]}: {r[1]} parts" for r in rows]) or "No underused location."
+        msg = self.rapport_service.get_emplacements_sous_utilises()
         QMessageBox.information(self, self.tr("Underused locations"), msg)
 
     def show_pieces_by_statut(self):
-        with self.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT s.nom, COUNT(*)
-                FROM piece p
-                JOIN piece_extension pe ON p.id_piece = pe.id_piece
-                JOIN piece_statut s ON pe.statut_id = s.id
-                GROUP BY s.nom
-                ORDER BY COUNT(*) DESC;
-            """)
-            rows = cur.fetchall()
-        msg = "\n".join([f"{r[0]}: {r[1]} parts" for r in rows]) or "No status."
+        msg = self.rapport_service.get_pieces_by_statut()
         QMessageBox.information(self, self.tr("Parts by status"), msg)
 
     # === Méthodes pour les mouvements de stock ===
