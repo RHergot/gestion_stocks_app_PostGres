@@ -1,6 +1,9 @@
-# gmao_app/app/data/schemas.py
+# database/bu/schemas.py
 """
-Contient les requêtes SQL pour définir le schéma de la base de données.
+⚠️ LEGACY — Schéma en syntaxe SQLite (INTEGER PRIMARY KEY AUTOINCREMENT, etc.)
+Le runtime utilise PostgreSQL via psycopg2. Ce fichier n'est PAS utilisé à l'exécution.
+Pour PostgreSQL, utilisez les fichiers .sql dans database/ ou un outil de migration (Alembic).
+Conservé comme référence historique et pour documenter la structure des tables attendue.
 """
 from typing import Dict
 
