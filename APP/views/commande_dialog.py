@@ -223,77 +223,31 @@ class CommandeDialog(QDialog):
             self.annuler_btn.clicked.connect(self.annuler_commande)
     
     def load_fournisseurs(self):
-        """Load the suppliers list from the database"""
+        """Load the suppliers list from the database."""
         try:
-            print("Attempting to load suppliers...")
             with self.db.conn.cursor() as cur:
-                # First check if table exists (lowercase)
                 cur.execute("""
-                    SELECT EXISTS (
-                        SELECT FROM information_schema.tables 
-                        WHERE  table_schema = 'public'
-                        AND    table_name   = 'fournisseur'
-                    );
-                """)
-                table_exists = cur.fetchone()[0]
-                
-                if not table_exists:
-                    print("Table 'fournisseur' does not exist, attempting creation...")
-                    # Create table if it doesn't exist
-                    cur.execute("""
-                        CREATE TABLE IF NOT EXISTS fournisseur (
-                            id_fournisseur SERIAL PRIMARY KEY,
-                            nom TEXT NOT NULL UNIQUE,
-                            contact TEXT,
-                            adresse TEXT,
-                            telephone TEXT,
-                            email TEXT,
-                            delai_livraison_moyen_j INTEGER,
-                            devise TEXT DEFAULT 'EUR',
-                            note_qualite REAL,
-                            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                        );
-                        
-                        -- Create a default supplier
-                        INSERT INTO fournisseur (nom, telephone, email)
-                        VALUES ('Fournisseur par défaut', '0102030405', 'contact@fournisseur.fr')
-                        ON CONFLICT (nom) DO NOTHING;
-                    """)
-                    self.db.conn.commit()
-                    print("Table 'fournisseur' successfully created with a default supplier")
-                
-                # Query to retrieve suppliers
-                query = """
                     SELECT id_fournisseur, nom, COALESCE(telephone, '') as reference
                     FROM fournisseur 
                     ORDER BY nom
-                """
-                
-                print(f"Executing query: {query}")
-                cur.execute(query)
+                """)
                 fournisseurs = cur.fetchall()
-                
-                print(f"{len(fournisseurs)} suppliers found")
                 
                 self.fournisseur_combo.clear()
                 for id_fournisseur, nom, reference in fournisseurs:
                     display_text = f"{nom} ({reference})" if reference else nom
                     self.fournisseur_combo.addItem(display_text, userData=id_fournisseur)
                 
-                # Select first supplier by default if any
                 if self.fournisseur_combo.count() > 0:
                     self.fournisseur_combo.setCurrentIndex(0)
                 else:
-                    print("No supplier found in database")
-                    self.fournisseur_combo.addItem("No supplier available", None)
+                    self.fournisseur_combo.addItem(self.tr("No supplier available"), None)
                     
         except Exception as e:
-            error_msg = f"Unable to load suppliers list:\n{str(e)}"
-            print(error_msg)
             QMessageBox.critical(
                 self, 
-                "Loading error", 
-                error_msg
+                self.tr("Error"),
+                self.tr(f"Unable to load suppliers list:\n{str(e)}")
             )
             # Add an empty supplier to avoid errors
             self.fournisseur_combo.addItem("No supplier available", None)

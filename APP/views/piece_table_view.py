@@ -114,77 +114,23 @@ class PieceTableView(QWidget):
         )
 
     def show_stock_faible(self):
-        with self.piece_service.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire, p.stock_alerte, p.stock_actuel, p.stock_reserve,
-                       p.unite, p.categorie, p.emplacement_stockage, p.statut
-                FROM piece p
-                WHERE p.stock_actuel <= p.stock_alerte
-                ORDER BY p.stock_actuel ASC;
-            """)
-            pieces = [dict(zip(["id_piece", "reference", "nom", "fournisseur_pref_id", "prix_unitaire", "stock_alerte", "stock_actuel", "stock_reserve", "unite", "categorie", "emplacement_stockage", "statut"], row)) for row in cur.fetchall()]
+        pieces = self.piece_service.get_pieces_stock_faible()
         self.set_pieces_table(pieces)
 
     def show_pieces_by_machine(self):
-        with self.piece_service.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire, p.stock_alerte, p.stock_actuel, p.stock_reserve,
-                       p.unite, p.categorie, p.emplacement_stockage, p.statut
-                FROM piece p
-                JOIN piece_extension pe ON p.id_piece = pe.id_piece
-                WHERE pe.machine_id IS NOT NULL
-                ORDER BY p.nom;
-            """)
-            pieces = [dict(zip(["id_piece", "reference", "nom", "fournisseur_pref_id", "prix_unitaire", "stock_alerte", "stock_actuel", "stock_reserve", "unite", "categorie", "emplacement_stockage", "statut"], row)) for row in cur.fetchall()]
+        pieces = self.piece_service.get_pieces_by_machine()
         self.set_pieces_table(pieces)
 
     def show_inventaire_categorie(self):
-        # Affiche toutes les pièces triées par catégorie (table complète, filtrée)
-        with self.piece_service.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire, p.stock_alerte, p.stock_actuel, p.stock_reserve,
-                       p.unite, p.categorie, p.emplacement_stockage, p.statut
-                FROM piece p
-                JOIN piece_extension pe ON p.id_piece = pe.id_piece
-                WHERE pe.categorie_id IS NOT NULL
-                ORDER BY p.categorie, p.nom;
-            """)
-            pieces = [dict(zip(["id_piece", "reference", "nom", "fournisseur_pref_id", "prix_unitaire", "stock_alerte", "stock_actuel", "stock_reserve", "unite", "categorie", "emplacement_stockage", "statut"], row)) for row in cur.fetchall()]
+        pieces = self.piece_service.get_pieces_by_categorie()
         self.set_pieces_table(pieces)
 
     def show_emplacements_vides(self):
-        # Affiche toutes les pièces qui sont dans un emplacement sous-utilisé (<5 pièces)
-        with self.piece_service.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire, p.stock_alerte, p.stock_actuel, p.stock_reserve,
-                       p.unite, p.categorie, p.emplacement_stockage, p.statut
-                FROM piece p
-                JOIN piece_extension pe ON p.id_piece = pe.id_piece
-                WHERE pe.emplacement_id IN (
-                    SELECT e.id
-                    FROM emplacement e
-                    LEFT JOIN piece_extension pe2 ON pe2.emplacement_id = e.id
-                    LEFT JOIN piece p2 ON pe2.id_piece = p2.id_piece
-                    GROUP BY e.id
-                    HAVING COUNT(p2.id_piece) < 5
-                )
-                ORDER BY p.emplacement_stockage, p.nom;
-            """)
-            pieces = [dict(zip(["id_piece", "reference", "nom", "fournisseur_pref_id", "prix_unitaire", "stock_alerte", "stock_actuel", "stock_reserve", "unite", "categorie", "emplacement_stockage", "statut"], row)) for row in cur.fetchall()]
+        pieces = self.piece_service.get_pieces_emplacements_sous_utilises()
         self.set_pieces_table(pieces)
 
     def show_pieces_by_statut(self):
-        # Affiche toutes les pièces triées par statut (table complète, filtrée)
-        with self.piece_service.db.conn.cursor() as cur:
-            cur.execute("""
-                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire, p.stock_alerte, p.stock_actuel, p.stock_reserve,
-                       p.unite, p.categorie, p.emplacement_stockage, p.statut
-                FROM piece p
-                JOIN piece_extension pe ON p.id_piece = pe.id_piece
-                WHERE pe.statut_id IS NOT NULL
-                ORDER BY p.statut, p.nom;
-            """)
-            pieces = [dict(zip(["id_piece", "reference", "nom", "fournisseur_pref_id", "prix_unitaire", "stock_alerte", "stock_actuel", "stock_reserve", "unite", "categorie", "emplacement_stockage", "statut"], row)) for row in cur.fetchall()]
+        pieces = self.piece_service.get_pieces_by_statut()
         self.set_pieces_table(pieces)
 
     def add_piece(self):

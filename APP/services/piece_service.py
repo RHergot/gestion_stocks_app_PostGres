@@ -201,3 +201,91 @@ class PieceService:
             if pg_errors and isinstance(e, pg_errors.ForeignKeyViolation) or e.__class__.__name__ == 'ForeignKeyViolation':
                 raise RuntimeError("Cannot delete this part because it is referenced by other records (e.g., interventions). Remove those links first.") from e
             raise
+
+    # === Méthodes de filtrage (requêtes déplacées depuis piece_table_view.py) ===
+
+    _PIECE_COLUMNS = [
+        "id_piece", "reference", "nom", "fournisseur_pref_id", "prix_unitaire",
+        "stock_alerte", "stock_actuel", "stock_reserve", "unite", "categorie",
+        "emplacement_stockage", "statut"
+    ]
+
+    def _rows_to_pieces(self, rows):
+        """Convertit des lignes de curseur en liste de dictionnaires."""
+        return [dict(zip(self._PIECE_COLUMNS, row)) for row in rows]
+
+    def get_pieces_stock_faible(self):
+        """Pièces dont le stock est inférieur ou égal au seuil d'alerte."""
+        with self.db.conn.cursor() as cur:
+            cur.execute("""
+                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire,
+                       p.stock_alerte, p.stock_actuel, p.stock_reserve,
+                       p.unite, p.categorie, p.emplacement_stockage, p.statut
+                FROM piece p
+                WHERE p.stock_actuel <= p.stock_alerte
+                ORDER BY p.stock_actuel ASC;
+            """)
+            return self._rows_to_pieces(cur.fetchall())
+
+    def get_pieces_by_machine(self):
+        """Pièces liées à une machine."""
+        with self.db.conn.cursor() as cur:
+            cur.execute("""
+                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire,
+                       p.stock_alerte, p.stock_actuel, p.stock_reserve,
+                       p.unite, p.categorie, p.emplacement_stockage, p.statut
+                FROM piece p
+                JOIN piece_extension pe ON p.id_piece = pe.id_piece
+                WHERE pe.machine_id IS NOT NULL
+                ORDER BY p.nom;
+            """)
+            return self._rows_to_pieces(cur.fetchall())
+
+    def get_pieces_by_categorie(self):
+        """Pièces triées par catégorie."""
+        with self.db.conn.cursor() as cur:
+            cur.execute("""
+                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire,
+                       p.stock_alerte, p.stock_actuel, p.stock_reserve,
+                       p.unite, p.categorie, p.emplacement_stockage, p.statut
+                FROM piece p
+                JOIN piece_extension pe ON p.id_piece = pe.id_piece
+                WHERE pe.categorie_id IS NOT NULL
+                ORDER BY p.categorie, p.nom;
+            """)
+            return self._rows_to_pieces(cur.fetchall())
+
+    def get_pieces_emplacements_sous_utilises(self):
+        """Pièces dans des emplacements sous-utilisés (<5 pièces)."""
+        with self.db.conn.cursor() as cur:
+            cur.execute("""
+                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire,
+                       p.stock_alerte, p.stock_actuel, p.stock_reserve,
+                       p.unite, p.categorie, p.emplacement_stockage, p.statut
+                FROM piece p
+                JOIN piece_extension pe ON p.id_piece = pe.id_piece
+                WHERE pe.emplacement_id IN (
+                    SELECT e.id
+                    FROM emplacement e
+                    LEFT JOIN piece_extension pe2 ON pe2.emplacement_id = e.id
+                    LEFT JOIN piece p2 ON pe2.id_piece = p2.id_piece
+                    GROUP BY e.id
+                    HAVING COUNT(p2.id_piece) < 5
+                )
+                ORDER BY p.emplacement_stockage, p.nom;
+            """)
+            return self._rows_to_pieces(cur.fetchall())
+
+    def get_pieces_by_statut(self):
+        """Pièces triées par statut."""
+        with self.db.conn.cursor() as cur:
+            cur.execute("""
+                SELECT p.id_piece, p.reference, p.nom, p.fournisseur_pref_id, p.prix_unitaire,
+                       p.stock_alerte, p.stock_actuel, p.stock_reserve,
+                       p.unite, p.categorie, p.emplacement_stockage, p.statut
+                FROM piece p
+                JOIN piece_extension pe ON p.id_piece = pe.id_piece
+                WHERE pe.statut_id IS NOT NULL
+                ORDER BY p.statut, p.nom;
+            """)
+            return self._rows_to_pieces(cur.fetchall())
