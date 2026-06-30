@@ -1,4 +1,7 @@
 from PySide6.QtWidgets import QDialog, QFormLayout, QLineEdit, QPushButton, QHBoxLayout, QSpinBox, QDoubleSpinBox, QMessageBox, QComboBox, QLabel
+import logging
+
+logger = logging.getLogger(__name__)
 
 class PieceDialog(QDialog):
     def __init__(self, parent=None, db=None, warehouses=None, fournisseurs=None, unites=None, categories=None, emplacements=None, statuts=None, machines=None):
@@ -122,7 +125,7 @@ class PieceDialog(QDialog):
         self.emplacement_stockage.setPlaceholderText(self.tr("Select warehouse and use Find/Set"))
         # Potentially filter self.all_emplacements based on selected warehouse and repopulate self.emplacement_stockage
         # For now, just clearing it. User must use Find/Set.
-        print(f"DEBUG: Warehouse for emplacement changed. Emplacement ComboBox cleared.")
+        logger.debug("Warehouse changed, emplacement combo cleared")
 
     def _resolve_emplacement_from_inputs(self):
         if not self.db:
@@ -162,7 +165,7 @@ class PieceDialog(QDialog):
                 QMessageBox.warning(self, self.tr("Not Found"), self.tr("No emplacement found for the specified Aisle, Shelf, Level in this warehouse."))
         except Exception as e:
             QMessageBox.critical(self, self.tr("Query Error"), self.tr(f"Error finding emplacement: {e}"))
-            print(f"ERROR: _resolve_emplacement_from_inputs - {e}")
+            logger.error("_resolve_emplacement_from_inputs failed: %s", e)
 
     def get_data(self):
         if not self.reference.text().strip() or not self.nom.text().strip() or self.unite.currentIndex() < 0:
@@ -228,7 +231,7 @@ class PieceDialog(QDialog):
                     self.shelf_input.setValue(int(str(etagere)))
                     self.level_input.setValue(int(str(niveau)))
                 except (ValueError, TypeError):
-                    print(f"Warning: Could not convert A/S/L from local to int for emp_id {emp_id}. Values: {allee}, {etagere}, {niveau}")
+                    logger.warning("Could not convert A/S/L from local to int for emp_id %s. Values: %s, %s, %s", emp_id, allee, etagere, niveau)
                     self.aisle_input.setValue(1)
                     self.shelf_input.setValue(1)
                     self.level_input.setValue(1)
@@ -256,7 +259,7 @@ class PieceDialog(QDialog):
                             self.shelf_input.setValue(int(etagere_str))
                             self.level_input.setValue(int(niveau_str))
                         except (ValueError, TypeError):
-                            print(f"Warning: Could not convert A/S/L from DB to int for emp_id {emp_id}. Values: {allee_str}, {etagere_str}, {niveau_str}")
+                            logger.warning("Could not convert A/S/L from DB to int for emp_id %s. Values: %s, %s, %s", emp_id, allee_str, etagere_str, niveau_str)
                             self.aisle_input.setValue(1)
                             self.shelf_input.setValue(1)
                             self.level_input.setValue(1)
@@ -265,9 +268,9 @@ class PieceDialog(QDialog):
                         self.emplacement_stockage.setCurrentIndex(0)
                     else:
                         self.emplacement_stockage.setPlaceholderText(self.tr("Emplacement ID not found in DB"))
-                        print(f"Warning: Emplacement ID {emp_id} not found in database during set_data fallback.")
+                        logger.warning("Emplacement ID %s not found in DB during set_data fallback", emp_id)
                 except Exception as e:
-                    print(f"Error fetching emplacement details in set_data fallback: {e}")
+                    logger.error("Error fetching emplacement details in set_data fallback: %s", e)
                     self.emplacement_stockage.setPlaceholderText(self.tr("Error loading emplacement details"))
             else: # Neither local nor DB access
                  self.emplacement_stockage.setPlaceholderText(self.tr("Emplacement details unavailable"))

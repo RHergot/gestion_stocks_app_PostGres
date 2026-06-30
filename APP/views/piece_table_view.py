@@ -140,12 +140,7 @@ class PieceTableView(QWidget):
         emplacements = self.parent().emplacement_service.get_all_emplacements()
         statuts = self.parent().piece_statut_service.list_statuts()
         machines = self.parent().machine_service.list_machines()
-        # Stocker les listes pour le service
-        self.piece_service.parent_unit_list = unites
-        self.piece_service.parent_category_list = categories
-        self.piece_service.parent_emplacement_list = emplacements
-        self.piece_service.parent_statut_list = statuts
-        warehouses = self.parent().emplacement_service.get_all_warehouses() # Assumes this method exists or will be added
+        warehouses = self.parent().emplacement_service.get_all_warehouses()
         dialog = PieceDialog(self, db=self.piece_service.db, warehouses=warehouses, fournisseurs=fournisseurs, unites=unites, categories=categories, emplacements=emplacements, statuts=statuts, machines=machines)
         if dialog.exec() == QDialog.Accepted:
             data = dialog.get_data()
@@ -164,12 +159,7 @@ class PieceTableView(QWidget):
         emplacements = self.parent().emplacement_service.get_all_emplacements()
         statuts = self.parent().piece_statut_service.list_statuts()
         machines = self.parent().machine_service.list_machines()
-        # Stocker les listes pour le service
-        self.piece_service.parent_unit_list = unites
-        self.piece_service.parent_category_list = categories
-        self.piece_service.parent_emplacement_list = emplacements
-        self.piece_service.parent_statut_list = statuts
-        warehouses = self.parent().emplacement_service.get_all_warehouses() # Assumes this method exists or will be added
+        warehouses = self.parent().emplacement_service.get_all_warehouses()
         dialog = PieceDialog(self, db=self.piece_service.db, warehouses=warehouses, fournisseurs=fournisseurs, unites=unites, categories=categories, emplacements=emplacements, statuts=statuts, machines=machines)
         dialog.set_data(piece)
         if dialog.exec() == QDialog.Accepted:
