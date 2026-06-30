@@ -1,8 +1,3 @@
-from PySide6.QtWidgets import QMainWindow, QMenuBar, QMenu, QMessageBox
-from PySide6.QtCore import QTranslator
-from PySide6.QtGui import QAction
-
-
 from PySide6.QtWidgets import QMainWindow, QMenuBar, QMenu, QMessageBox, QLabel, QDialog
 from PySide6.QtCore import QTranslator, Qt
 from PySide6.QtGui import QAction, QFont

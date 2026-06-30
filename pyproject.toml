@@ -28,14 +28,12 @@ dependencies = [
   "jinja2>=3.1.2",
   "pdfkit>=1.0.0",
   # Database (PostgreSQL)
-  "psycopg2-binary>=2.9.9",
+  "psycopg2>=2.9.9",
 ]
 
-# Optional command-line entry point (works on Windows/Linux/macOS)
-# After installation, you could run `gestion-stocks` to start the app
-# Uncomment when main() is stable as an entry point in APP/main.py
-# [project.scripts]
-# gestion-stocks = "APP.main:main"
+# Entry point — run `gestion-stocks` after pip install
+[project.scripts]
+gestion-stocks = "APP.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -46,6 +46,14 @@ python APP/main.py
 
 MIT — voir [LICENSE](LICENSE)
 
+## Conventions de code
+
+- **Langue** : Noms de classes/méthodes en anglais ; commentaires et messages utilisateur en français
+- **Nommage tables** : snake_case (commande, piece_extension, mouvement_stock)
+- **Pattern DB** : Préférer `db.execute(query, params)` à `db.conn.cursor()` directement
+- **i18n** : Toutes les chaînes UI via `self.tr()` ; dictionnaires FR/EN dans `APP/utils/i18n.py`
+- **Logging** : Module `logging` (config centralisée dans `APP/main.py`), pas de `print()`
+
 ## 🗄️ Base de données
 
 Ce module partage la base `gmao_industrie_data` avec l'app principale. Schéma complet dans [`gmao_app_PostGres/docs/database-schema.md`](https://github.com/RHergot/gmao_app_PostGres/blob/main/docs/database-schema.md).

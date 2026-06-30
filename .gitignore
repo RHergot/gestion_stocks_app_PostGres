@@ -29,14 +29,18 @@ env/
 # Fichiers de compilation
 build/
 dist/
-
-
 *.egg-info/
-build/
-dist/
-*.egg-info/
+
+# Fichiers C compilés
 **/*.c
 **/*.cpp
 **/*.html
 **/*.so
 **/*.pyd
+
+# Dumps de base de données
+*.dump
+*.sql.gz
+
+# Tests
+.pytest_cache/
