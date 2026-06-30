@@ -882,10 +882,15 @@ class CommandeDialog(QDialog):
             nouveau_numero = self._generer_nouveau_numero()
             
             # Prepare new order data
+            createur_id = commande_repo.get_default_user_id()
+            if not createur_id:
+                QMessageBox.warning(self, self.tr("Error"),
+                                  self.tr("No admin user found. Please create an admin account first."))
+                return
             nouvelle_commande_data = {
                 'numero_commande': nouveau_numero,
                 'fournisseur_id': self.commande_data['fournisseur_id'],
-                'createur_id': commande_repo.get_default_user_id(),
+                'createur_id': createur_id,
                 'date_commande': datetime.now().strftime('%Y-%m-%d'),
                 'date_livraison_prevue': self.commande_data.get('date_livraison_prevue'),
                 'statut': 'Brouillon',

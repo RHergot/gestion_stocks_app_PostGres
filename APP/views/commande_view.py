@@ -1051,10 +1051,15 @@ class CommandeView(QWidget):
             nouveau_numero = self._generer_nouveau_numero()
             
             # Préparer les données de la nouvelle commande
+            createur_id = self.commande_repo.get_default_user_id()
+            if not createur_id:
+                QMessageBox.warning(self, self.tr("Error"),
+                                  self.tr("No admin user found. Please create an admin account first."))
+                return
             nouvelle_commande_data = {
                 'numero_commande': nouveau_numero,
                 'fournisseur_id': commande_originale['fournisseur_id'],
-                'createur_id': self.commande_repo.get_default_user_id(),
+                'createur_id': createur_id,
                 'date_commande': datetime.now().strftime('%Y-%m-%d'),
                 'date_livraison_prevue': commande_originale.get('date_livraison_prevue'),
                 'statut': 'Brouillon',

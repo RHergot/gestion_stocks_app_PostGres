@@ -294,10 +294,10 @@ class CommandeRepository:
     def get_default_user_id(self):
         """
         Récupère l'ID de l'utilisateur Admin par défaut.
-        Crée un utilisateur Admin s'il n'existe pas.
         
         Returns:
-            int: L'ID de l'utilisateur Admin
+            int or None: L'ID de l'utilisateur Admin, ou None si aucun admin n'existe.
+            L'admin doit être créé via l'interface utilisateur (avec mot de passe haché).
         """
         if self._default_user_id:
             return self._default_user_id
@@ -318,34 +318,10 @@ class CommandeRepository:
                     logger.info(f"Utilisateur Admin trouvé avec l'ID: {self._default_user_id}")
                     return self._default_user_id
                     
-                # Si l'utilisateur Admin n'existe pas, on le crée
-                logger.info("Création de l'utilisateur Admin par défaut...")
-                cur.execute("""
-                    INSERT INTO utilisateur (
-                        login, 
-                        email, 
-                        mot_de_passe_hash, 
-                        role, 
-                        actif,
-                        nom_complet
-                    ) VALUES (
-                        'Admin', 
-                        'admin@example.com', 
-                        'admin123', -- À remplacer par un vrai hash en production
-                        'admin', 
-                        1,  -- Utilisation de 1 au lieu de true pour le champ actif (type integer)
-                        'Administrateur Système'
-                    )
-                    RETURNING id_utilisateur;
-                """)
-                
-                self._default_user_id = cur.fetchone()[0]
-                self.db.conn.commit()
-                logger.info(f"Utilisateur Admin créé avec l'ID: {self._default_user_id}")
-                return self._default_user_id
+                # Pas d'auto-création — l'admin doit être créé explicitement
+                logger.warning("Aucun utilisateur Admin trouvé. Créez un compte admin via l'interface.")
+                return None
                 
             except Exception as e:
-                self.db.conn.rollback()
-                logger.error(f"Erreur lors de la récupération/création de l'utilisateur Admin: {e}")
-                # En cas d'erreur, on retourne une valeur par défaut sécurisée
-                return 1
+                logger.error(f"Erreur lors de la récupération de l'utilisateur Admin: {e}")
+                raise
