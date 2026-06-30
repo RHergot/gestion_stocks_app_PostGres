@@ -6,228 +6,20 @@ from PySide6.QtWidgets import (
     QGroupBox, QTableWidget, QTableWidgetItem, QHeaderView,
     QAbstractItemView
 )
-from PySide6.QtCore import Qt, QSize, QDate, QAbstractTableModel, QModelIndex
-from PySide6.QtGui import QAction, QIcon, QIntValidator, QDoubleValidator, QColor
-from datetime import datetime
+from PySide6.QtCore import Qt, QSize, QDate
+from PySide6.QtGui import QAction, QIcon
 
 from APP.models.commande_repository import CommandeRepository
 from APP.models.ligne_commande_repository import LigneCommandeRepository
 from APP.models.fournisseur_repository import FournisseurRepository
 from APP.models.piece_repository import PieceRepository
+from APP.models.commande_table_model import CommandeTableModel, LigneCommandeTableModel
+from APP.controllers.commande_controller import CommandeController
 from APP.services.commande_service import get_all_commandes_clean
+from datetime import datetime
 
 from .commande_dialog import CommandeDialog
 from .ligne_commande_dialog import LigneCommandeDialog
-
-class CommandeTableModel(QAbstractTableModel):
-    HEADER_LABELS = {
-        "id_commande": "ID",
-        "numero_commande": "Order No.",
-        "fournisseur_nom": "Supplier",
-        "createur_nom": "Creator",
-        "date_commande": "Order date",
-        "date_livraison_prevue": "Planned delivery",
-        "date_livraison_reelle": "Actual delivery",
-        "statut": "Status",
-        "total_ht": "Total (excl. tax)",
-        "frais_port": "Shipping cost",
-        "reference_fournisseur": "Supplier ref.",
-        "mode_paiement": "Payment method",
-        "notes_commande": "Notes",
-        "created_at": "Created at",
-        "updated_at": "Updated at"
-    }
-
-    def __init__(self, commandes):
-        super().__init__()
-        self.commandes = commandes or []
-        
-        # Utilise les clés de HEADER_LABELS pour garantir l'ordre et la présence de toutes les colonnes
-        self.headers = list(self.HEADER_LABELS.keys())
-        
-        # Debug log
-        if not self.commandes:
-            print("[DEBUG] No data provided to order model")
-        elif not isinstance(self.commandes[0], dict):
-            print(f"[ERROR] Data must be dictionaries, got: {type(self.commandes[0])}")
-        else:
-            print(f"[DEBUG] Model initialized with {len(self.commandes)} orders")
-            print(f"[DEBUG] Model headers: {self.headers}")
-            if self.commandes:
-                print(f"[DEBUG] First order keys: {list(self.commandes[0].keys())}")
-
-    def rowCount(self, parent=None):
-        return len(self.commandes)
-
-    def columnCount(self, parent=None):
-        return len(self.headers)
-
-    def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid():
-            return None
-            
-        if role == Qt.UserRole:
-            # Retourne l'ID de la commande pour la ligne (utilisé par select_commande)
-            row = index.row()
-            if row < len(self.commandes):
-                return self.commandes[row].get("id_commande")
-            return None
-
-        if role == Qt.DisplayRole or role == Qt.EditRole:
-            row = index.row()
-            col = index.column()
-            
-            if row >= len(self.commandes) or col >= len(self.headers):
-                return None
-                
-            key = self.headers[col]
-            commande = self.commandes[row]
-            
-            # Debug log (only once for first cell)
-            if row == 0 and col == 0 and not hasattr(self, '_debug_shown'):
-                print(f"[DEBUG] Displaying first cell. Key: {key}, Value: {commande.get(key, 'N/A')}")
-                self._debug_shown = True
-            
-            # Raw value
-            value = commande.get(key, "")
-            
-            # Special formatting for dates
-            if key in ["date_commande", "date_livraison_prevue", "date_livraison_reelle", "created_at", "updated_at"] and value:
-                try:
-                    from datetime import datetime
-                    # Try multiple date formats
-                    for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
-                        try:
-                            dt = datetime.strptime(str(value).split('.')[0], fmt)  # Remove microseconds
-                            # Display as DD/MM/YYYY
-                            return dt.strftime("%d/%m/%Y")
-                        except ValueError:
-                            continue
-                except (ValueError, TypeError) as e:
-                    print(f"[DEBUG] Date formatting error {key}={value}: {str(e)}")
-            
-            # Formatage des montants
-            elif key in ["total_ht", "frais_port"] and value is not None:
-                try:
-                    return f"{float(value):.2f} €"
-                except (ValueError, TypeError):
-                    pass
-            
-            # Pour les valeurs booléennes
-            elif isinstance(value, bool):
-                return "Yes" if value else "No"
-            
-            # Pour les valeurs None, retourne une chaîne vide
-            if value is None:
-                return ""
-                
-            # Pour les autres cas, retourne la valeur convertie en chaîne
-            return str(value)
-            
-        return None
-
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                if section < len(self.headers):
-                    key = self.headers[section]
-                    return self.HEADER_LABELS.get(key, key)
-            else:
-                return section + 1
-        return None
-
-
-class LigneCommandeTableModel(QAbstractTableModel):
-    HEADER_LABELS = {
-        "id_ligne": "Line ID",
-        "piece_reference": "Part ref.",
-        "piece_nom": "Part name",
-        "description_libre": "Description",
-        "quantite_commandee": "Qty ordered",
-        "prix_unitaire_ht": "Unit price (excl. tax)",
-        "quantite_recue": "Qty received",
-        "date_reception": "Reception date",
-        "statut_ligne": "Status",
-        "commande_id": "Order ID",
-        "piece_id": "Part ID"
-    }
-
-    def __init__(self, lignes):
-        super().__init__()
-        self.lignes = lignes or []
-        
-        # Utilise les clés de HEADER_LABELS pour garantir l'ordre et la présence de toutes les colonnes
-        self.headers = list(self.HEADER_LABELS.keys())
-        
-        # Debug log
-        if not self.lignes:
-            print("[DEBUG] No data provided to order lines model")
-        elif not isinstance(self.lignes[0], dict):
-            print(f"[ERROR] Line data must be dictionaries, got: {type(self.lignes[0])}")
-        elif self.lignes:
-            print(f"[DEBUG] Lines model initialized with {len(self.lignes)} rows")
-            print(f"[DEBUG] First line keys: {list(self.lignes[0].keys())}")
-
-    def rowCount(self, parent=None):
-        return len(self.lignes)
-
-    def columnCount(self, parent=None):
-        return len(self.headers)
-
-    def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid():
-            return None
-            
-        if role == Qt.UserRole:
-            # Retourne l'ID de la commande pour la ligne (utilisé par select_commande)
-            row = index.row()
-            if row < len(self.commandes):
-                return self.commandes[row].get("id_commande")
-            return None
-
-        if role == Qt.DisplayRole or role == Qt.EditRole:
-            row = index.row()
-            col = index.column()
-            
-            if row >= len(self.lignes) or col >= len(self.headers):
-                return None
-                
-            key = self.headers[col]
-            ligne = self.lignes[row]
-            
-            # Mise en forme spéciale pour certains champs
-            value = ligne.get(key, "")
-            
-            # Formatage des nombres
-            if key in ["prix_unitaire_ht"] and value is not None:
-                try:
-                    return f"{float(value):.2f} €"
-                except (ValueError, TypeError):
-                    pass
-                    
-            # Formatage des dates
-            if key in ["date_reception"] and value:
-                try:
-                    from datetime import datetime
-                    dt = datetime.strptime(str(value), "%Y-%m-%d")
-                    return dt.strftime("%d/%m/%Y")
-                except (ValueError, TypeError):
-                    pass
-                    
-            return str(value) if value is not None else ""
-            
-        return None
-
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                if section < len(self.headers):
-                    key = self.headers[section]
-                    return self.HEADER_LABELS.get(key, key)
-            else:
-                return section + 1
-        return None
-
 
 class CommandeView(QWidget):
     def __init__(self, commandes, db, parent=None):
@@ -239,6 +31,7 @@ class CommandeView(QWidget):
         # Initialisation des repositories
         self.commande_repo = CommandeRepository(db)
         self.ligne_commande_repo = LigneCommandeRepository(db)
+        self.commande_controller = CommandeController(db, self.commande_repo, self.ligne_commande_repo)
         self.fournisseur_repo = FournisseurRepository(db)
         self.piece_repo = PieceRepository(db)
         
@@ -961,7 +754,9 @@ class CommandeView(QWidget):
         
         if reply == QMessageBox.Yes:
             try:
-                self._creer_copie_commande(commande)
+                result = self._creer_copie_commande(commande)
+                if result is None:
+                    return
                 QMessageBox.information(
                     self, 
                     "Success", 
@@ -1001,110 +796,25 @@ class CommandeView(QWidget):
                 self.refresh_data()
     
     def _changer_statut_commande(self, commande_id, nouveau_statut, with_delivery_date=False):
-        """Changes the status of an order in the database"""
+        """Changes the status of an order (delegates to controller)."""
         try:
-            # Prepare the update data
-            update_data = {'statut': nouveau_statut}
-            if with_delivery_date and nouveau_statut == 'Livree':
-                from datetime import datetime
-                update_data['date_livraison_reelle'] = datetime.now().strftime('%Y-%m-%d')
-            
-            # Perform the update
-            success = self.commande_repo.update_commande(commande_id, update_data)
-            
-            if not success:
-                QMessageBox.warning(self, "Error", "Unable to change the order status.")
-                return False
-            
+            self.commande_controller.changer_statut(commande_id, nouveau_statut)
             return True
-            
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error while changing status:\n{str(e)}")
             return False
     
     def _creer_mouvements_livraison(self, commande):
-        """Creates stock movements for the delivery of the order"""
-        try:
-            from APP.services.mouvement_service import MouvementService
-            
-            mouvement_service = MouvementService(self.db)
-            
-            # Récupérer les lignes de commande
-            lignes = self.ligne_commande_repo.get_lignes_by_commande_id(commande['id_commande'])
-            
-            # Récupérer le type de mouvement ENTREE_ACHAT
-            types_mouvement = mouvement_service.get_all_types_mouvement()
-            type_entree_achat = next((t for t in types_mouvement if t['nom'] == 'ENTREE_ACHAT'), None)
-            
-            if not type_entree_achat:
-                raise ValueError("Type de mouvement ENTREE_ACHAT non trouvé")
-            
-            # Créer un mouvement pour chaque ligne de commande
-            mouvements_crees = 0
-            for ligne in lignes:
-                mouvement_service.creer_mouvement_entree(
-                    piece_id=ligne['piece_id'],
-                    quantite=ligne['quantite_commandee'],
-                    type_mouvement_id=type_entree_achat['id'],
-                    reference_document=f"CMD-{commande['numero_commande']}",
-                    commentaire=f"Livraison commande {commande['numero_commande']}",
-                    cout_unitaire=ligne.get('prix_unitaire_ht')
-                )
-                mouvements_crees += 1
-            
-            print(f"[INFO] {mouvements_crees} stock movements created for order {commande['numero_commande']}")
-            
-        except Exception as e:
-            print(f"[ERROR] Error while creating stock movements: {str(e)}")
-            raise
+        """Creates stock movements for the delivery (delegates to controller)."""
+        return self.commande_controller.creer_mouvements_livraison(commande)
     
     def _creer_copie_commande(self, commande_originale):
-        """Crée une copie de la commande avec un nouveau numéro"""
+        """Crée une copie de la commande (delegates to controller)."""
         try:
-            # Générer un nouveau numéro de commande
-            nouveau_numero = self._generer_nouveau_numero()
-            
-            # Préparer les données de la nouvelle commande
-            createur_id = self.commande_repo.get_default_user_id()
-            if not createur_id:
-                QMessageBox.warning(self, self.tr("Error"),
-                                  self.tr("No admin user found. Please create an admin account first."))
-                return
-            nouvelle_commande_data = {
-                'numero_commande': nouveau_numero,
-                'fournisseur_id': commande_originale['fournisseur_id'],
-                'createur_id': createur_id,
-                'date_commande': datetime.now().strftime('%Y-%m-%d'),
-                'date_livraison_prevue': commande_originale.get('date_livraison_prevue'),
-                'statut': 'Brouillon',
-                'total_ht': commande_originale.get('total_ht', 0),
-                'frais_port': commande_originale.get('frais_port', 0),
-                'reference_fournisseur': commande_originale.get('reference_fournisseur'),
-                'mode_paiement': commande_originale.get('mode_paiement'),
-                'notes_commande': f"Copy of order {commande_originale['numero_commande']}"
-            }
-            
-            # Créer la nouvelle commande
-            nouvelle_commande_id = self.commande_repo.add_commande(nouvelle_commande_data)
-            
-            # Retrieve and copy order lines
-            lignes_originales = self.ligne_commande_repo.get_lignes_by_commande_id(commande_originale['id_commande'])
-            
-            for ligne in lignes_originales:
-                nouvelle_ligne_data = {
-                    'commande_id': nouvelle_commande_id,
-                    'piece_id': ligne['piece_id'],
-                    'quantite_commandee': ligne['quantite_commandee'],
-                    'prix_unitaire_ht': ligne['prix_unitaire_ht'],
-                    'description_libre': ligne.get('description_libre')
-                }
-                self.ligne_commande_repo.add_ligne_commande(nouvelle_ligne_data)
-            
-            print(f"[INFO] New order created with ID {nouvelle_commande_id} and number {nouveau_numero}")
-            
-        except Exception as e:
-            print(f"[ERROR] Error while copying order: {str(e)}")
-            raise
+            return self.commande_controller.creer_copie_commande(commande_originale)
+        except ValueError as e:
+            QMessageBox.warning(self, self.tr("Error"), self.tr(str(e)))
+            return None
     
     def _generer_nouveau_numero(self):
         """Génère un nouveau numéro de commande unique (via SQL MAX pour O(1))."""
