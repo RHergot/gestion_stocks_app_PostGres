@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QVBoxLayout, QComboBox, QCheckBox
 
-import hashlib
+import bcrypt
 
 class UserDialog(QDialog):
     def __init__(self, parent=None):
@@ -31,8 +31,11 @@ class UserDialog(QDialog):
         self.setLayout(vbox)
 
     def get_data(self):
-        # Hash du mot de passe
-        mot_de_passe_hash = hashlib.sha256(self.mot_de_passe.text().encode('utf-8')).hexdigest()
+        # Hash du mot de passe avec bcrypt (salé automatiquement)
+        mot_de_passe_hash = bcrypt.hashpw(
+            self.mot_de_passe.text().encode('utf-8'),
+            bcrypt.gensalt()
+        ).decode('utf-8')
         return {
             "login": self.login.text(),
             "mot_de_passe_hash": mot_de_passe_hash,

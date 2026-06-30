@@ -326,13 +326,18 @@ class ReceptionDialog(QDialog):
     def create_reception_detail(self, ligne_id, quantite_recue, quantite_defectueuse, commentaire):
         """Crée un enregistrement dans l'historique des réceptions"""
         try:
+            from ..models.commande_repository import CommandeRepository
+            repo = CommandeRepository(self.db)
+            utilisateur_id = repo.get_default_user_id()
+            if utilisateur_id is None:
+                utilisateur_id = 1  # fallback si aucun admin n'existe
             with self.db.conn.cursor() as cur:
                 cur.execute("""
                     INSERT INTO reception_detail (
                         ligne_commande_id, quantite_recue, quantite_defectueuse, 
                         utilisateur_id, commentaire
                     ) VALUES (%s, %s, %s, %s, %s)
-                """, (ligne_id, quantite_recue, quantite_defectueuse, 1, commentaire))  # TODO: récupérer l'utilisateur actuel
+                """, (ligne_id, quantite_recue, quantite_defectueuse, utilisateur_id, commentaire))
                 self.db.conn.commit()
         except Exception as e:
             print(f"[ERROR] Unable to create reception history: {e}")
