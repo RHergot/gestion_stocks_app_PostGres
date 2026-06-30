@@ -5,6 +5,9 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
                              QFrame, QWidget)
 from PySide6.QtCore import Qt, QDate, Signal
 from datetime import datetime
+from APP.controllers.commande_controller import CommandeController
+from APP.models.commande_repository import CommandeRepository
+from APP.models.ligne_commande_repository import LigneCommandeRepository
 
 class CommandeDialog(QDialog):
     # Signal émis quand une commande est livrée pour rafraîchir la vue
@@ -15,6 +18,11 @@ class CommandeDialog(QDialog):
         self.db = db
         self.commande_data = commande_data or {}
         self.is_editing = bool(commande_data)
+        self.commande_controller = CommandeController(
+            db,
+            CommandeRepository(db),
+            LigneCommandeRepository(db)
+        )
         self.setWindowTitle("Edit order" if commande_data else "New order")
         self.setMinimumWidth(900)
         
@@ -734,127 +742,32 @@ class CommandeDialog(QDialog):
                 self.update_status_buttons()
     
     def _changer_statut(self, nouveau_statut):
-        """Change the order status in the database"""
+        """Change the order status (delegates to controller)."""
         try:
-            from ..models.commande_repository import CommandeRepository
-            repo = CommandeRepository(self.db)
-            
-            # Update status
-            commande_data = {'statut': nouveau_statut}
+            self.commande_controller.changer_statut(self.commande_data['id_commande'], nouveau_statut)
+            # Update local data and combo
+            self.commande_data['statut'] = nouveau_statut
             if nouveau_statut == 'Livree':
-                commande_data['date_livraison_reelle'] = datetime.now().strftime('%Y-%m-%d')
-            
-            success = repo.update_commande(self.commande_data['id_commande'], commande_data)
-            
-            if success:
-                # Update local data
-                self.commande_data['statut'] = nouveau_statut
-                if nouveau_statut == 'Livree':
-                    self.commande_data['date_livraison_reelle'] = commande_data['date_livraison_reelle']
-                
-                # Update status display
-                index = self.statut_combo.findText(nouveau_statut, Qt.MatchFixedString)
-                if index >= 0:
-                    self.statut_combo.setCurrentIndex(index)
-                
-                return True
-            else:
-                QMessageBox.warning(self, "Error", "Unable to change the order status.")
-                return False
-                
+                self.commande_data['date_livraison_reelle'] = datetime.now().strftime('%Y-%m-%d')
+            index = self.statut_combo.findText(nouveau_statut, Qt.MatchFixedString)
+            if index >= 0:
+                self.statut_combo.setCurrentIndex(index)
+            return True
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error while changing status:\n{str(e)}")
             return False
     
     def _creer_mouvements_livraison(self):
-        """Create stock movements for the order delivery"""
-        try:
-            from ..services.mouvement_service import MouvementService
-            from ..models.ligne_commande_repository import LigneCommandeRepository
-            
-            mouvement_service = MouvementService(self.db)
-            ligne_repo = LigneCommandeRepository(self.db)
-            
-            # Retrieve order lines
-            lignes = ligne_repo.get_lignes_by_commande(self.commande_data['id_commande'])
-            
-            # Retrieve movement type ENTREE_ACHAT
-            types_mouvement = mouvement_service.get_all_types_mouvement()
-            type_entree_achat = next((t for t in types_mouvement if t['nom'] == 'ENTREE_ACHAT'), None)
-            
-            if not type_entree_achat:
-                raise ValueError("Movement type ENTREE_ACHAT not found")
-            
-            # Create a movement for each order line
-            for ligne in lignes:
-                mouvement_service.creer_mouvement_entree(
-                    piece_id=ligne['piece_id'],
-                    quantite=ligne['quantite_commandee'],
-                    type_mouvement_id=type_entree_achat['id'],
-                    reference_document=f"CMD-{self.commande_data['numero_commande']}",
-                    commentaire=f"Order delivery {self.commande_data['numero_commande']}",
-                    cout_unitaire=ligne.get('prix_unitaire_ht')
-                )
-            
-            print(f"Stock movements created for {len(lignes)} order lines")
-            
-        except Exception as e:
-            print(f"Error while creating movements: {str(e)}")
-            raise
+        """Create stock movements for the order delivery (delegates to controller)."""
+        return self.commande_controller.creer_mouvements_livraison(self.commande_data)
     
     def _creer_copie_commande(self):
-        """Create a copy of the order with a new number"""
+        """Create a copy of the order (delegates to controller)."""
         try:
-            from ..models.commande_repository import CommandeRepository
-            from ..models.ligne_commande_repository import LigneCommandeRepository
-            
-            commande_repo = CommandeRepository(self.db)
-            ligne_repo = LigneCommandeRepository(self.db)
-            
-            # Generate a new order number
-            nouveau_numero = self._generer_nouveau_numero()
-            
-            # Prepare new order data
-            createur_id = commande_repo.get_default_user_id()
-            if not createur_id:
-                QMessageBox.warning(self, self.tr("Error"),
-                                  self.tr("No admin user found. Please create an admin account first."))
-                return
-            nouvelle_commande_data = {
-                'numero_commande': nouveau_numero,
-                'fournisseur_id': self.commande_data['fournisseur_id'],
-                'createur_id': createur_id,
-                'date_commande': datetime.now().strftime('%Y-%m-%d'),
-                'date_livraison_prevue': self.commande_data.get('date_livraison_prevue'),
-                'statut': 'Brouillon',
-                'total_ht': self.commande_data.get('total_ht', 0),
-                'frais_port': self.commande_data.get('frais_port', 0),
-                'reference_fournisseur': self.commande_data.get('reference_fournisseur'),
-                'mode_paiement': self.commande_data.get('mode_paiement'),
-                'notes_commande': f"Copy of order {self.commande_data['numero_commande']}"
-            }
-            
-            # Create the new order
-            nouvelle_commande_id = commande_repo.add_commande(nouvelle_commande_data)
-            
-            # Retrieve and copy order lines
-            lignes_originales = ligne_repo.get_lignes_by_commande(self.commande_data['id_commande'])
-            
-            for ligne in lignes_originales:
-                nouvelle_ligne_data = {
-                    'commande_id': nouvelle_commande_id,
-                    'piece_id': ligne['piece_id'],
-                    'quantite_commandee': ligne['quantite_commandee'],
-                    'prix_unitaire_ht': ligne['prix_unitaire_ht'],
-                    'description_libre': ligne.get('description_libre')
-                }
-                ligne_repo.add_ligne_commande(nouvelle_ligne_data)
-            
-            print(f"New order created with ID {nouvelle_commande_id} and number {nouveau_numero}")
-            
-        except Exception as e:
-            print(f"Error while duplicating: {str(e)}")
-            raise
+            return self.commande_controller.creer_copie_commande(self.commande_data)
+        except ValueError as e:
+            QMessageBox.warning(self, self.tr("Error"), self.tr(str(e)))
+            return None
     
     def _generer_nouveau_numero(self):
         """Generate a new unique order number (via SQL MAX for O(1))."""
