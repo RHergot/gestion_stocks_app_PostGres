@@ -64,8 +64,8 @@ class MachineDialog(QDialog):
         layout.addRow(self.tr("Warranty end"), self.garantie_fin)
 
         btns = QHBoxLayout()
-        self.ok_btn = QPushButton("OK", self)
-        self.cancel_btn = QPushButton("Cancel", self)
+        self.ok_btn = QPushButton(self.tr("OK"), self)
+        self.cancel_btn = QPushButton(self.tr("Cancel"), self)
         btns.addWidget(self.ok_btn)
         btns.addWidget(self.cancel_btn)
         layout.addRow(btns)

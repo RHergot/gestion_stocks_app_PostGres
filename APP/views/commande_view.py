@@ -253,23 +253,23 @@ class CommandeView(QWidget):
         status_layout.setContentsMargins(0, 5, 0, 5)
         
         # Status management buttons
-        self.confirmer_btn = QPushButton("Confirm")
+        self.confirmer_btn = QPushButton(self.tr("Confirm"))
         self.confirmer_btn.setToolTip("Move from 'Brouillon' to 'Validee'")
         self.confirmer_btn.clicked.connect(self.confirmer_commande_selectionnee)
         
-        self.envoyer_btn = QPushButton("Send")
+        self.envoyer_btn = QPushButton(self.tr("Send"))
         self.envoyer_btn.setToolTip("Move from 'Validee' to 'Envoyee'")
         self.envoyer_btn.clicked.connect(self.envoyer_commande_selectionnee)
         
-        self.livrer_btn = QPushButton("Deliver")
+        self.livrer_btn = QPushButton(self.tr("Deliver"))
         self.livrer_btn.setToolTip("Move from 'Envoyee' to 'Livree' and create stock movements")
         self.livrer_btn.clicked.connect(self.livrer_commande_selectionnee)
         
-        self.copier_btn = QPushButton("Copy")
+        self.copier_btn = QPushButton(self.tr("Copy"))
         self.copier_btn.setToolTip("Create a new order with the same lines")
         self.copier_btn.clicked.connect(self.copier_commande_selectionnee)
         
-        self.annuler_commande_btn = QPushButton("Cancel order")
+        self.annuler_commande_btn = QPushButton(self.tr("Cancel order"))
         self.annuler_commande_btn.setToolTip("Cancel the order (becomes inaccessible)")
         self.annuler_commande_btn.setStyleSheet("QPushButton { background-color: #ff6b6b; color: white; }")
         self.annuler_commande_btn.clicked.connect(self.annuler_commande_selectionnee)

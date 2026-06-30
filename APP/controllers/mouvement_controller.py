@@ -7,6 +7,12 @@ from datetime import datetime, date
 from typing import List, Dict, Optional
 import logging
 
+# =============================================================================
+# STRUCTURE NOTE: Ce contrôleur a deux responsabilités. Lors d'un futur
+# refactoring, extraire la section "Workflow Réception" (lignes ~383-600)
+# dans un ReceptionController dédié.
+# =============================================================================
+
 class MouvementController:
     """Contrôleur pour la gestion des mouvements de stock"""
     

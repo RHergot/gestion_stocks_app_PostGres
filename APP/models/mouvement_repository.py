@@ -40,11 +40,10 @@ class MouvementRepository:
         """Récupère l'historique des mouvements pour une pièce"""
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute('''
-                SELECT * FROM v_historique_mouvements
-                WHERE piece_reference IN (
-                    SELECT reference FROM piece WHERE id_piece = %s
-                )
-                ORDER BY date_mouvement DESC
+                SELECT v.* FROM v_historique_mouvements v
+                JOIN piece p ON v.piece_reference = p.reference
+                WHERE p.id_piece = %s
+                ORDER BY v.date_mouvement DESC
                 LIMIT %s OFFSET %s;
             ''', (piece_id, limit, offset))
             return cur.fetchall()

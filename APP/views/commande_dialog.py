@@ -112,9 +112,9 @@ class CommandeDialog(QDialog):
         lignes_layout = QVBoxLayout()
         
         # Create buttons first
-        self.add_ligne_btn = QPushButton("Add line")
-        self.edit_ligne_btn = QPushButton("Edit")
-        self.del_ligne_btn = QPushButton("Delete")
+        self.add_ligne_btn = QPushButton(self.tr("Add line"))
+        self.edit_ligne_btn = QPushButton(self.tr("Edit"))
+        self.del_ligne_btn = QPushButton(self.tr("Delete"))
         
         # Désactiver les boutons d'édition et suppression initialement
         self.edit_ligne_btn.setEnabled(False)
@@ -152,19 +152,19 @@ class CommandeDialog(QDialog):
         self.status_layout = QHBoxLayout()
         
         # Status management buttons
-        self.confirmer_btn = QPushButton("Confirm")
+        self.confirmer_btn = QPushButton(self.tr("Confirm"))
         self.confirmer_btn.setToolTip("Change from 'Brouillon' to 'Validee'")
         
-        self.envoyer_btn = QPushButton("Send")
+        self.envoyer_btn = QPushButton(self.tr("Send"))
         self.envoyer_btn.setToolTip("Change from 'Validee' to 'Envoyee'")
         
-        self.livrer_btn = QPushButton("Deliver")
+        self.livrer_btn = QPushButton(self.tr("Deliver"))
         self.livrer_btn.setToolTip("Change from 'Envoyee' to 'Livree' and create stock movements")
         
-        self.copier_btn = QPushButton("Duplicate")
+        self.copier_btn = QPushButton(self.tr("Duplicate"))
         self.copier_btn.setToolTip("Create a new order with the same lines")
         
-        self.annuler_btn = QPushButton("Cancel order")
+        self.annuler_btn = QPushButton(self.tr("Cancel order"))
         self.annuler_btn.setToolTip("Cancel the order (becomes inaccessible)")
         self.annuler_btn.setStyleSheet("QPushButton { background-color: #ff6b6b; color: white; }")
         
@@ -185,8 +185,8 @@ class CommandeDialog(QDialog):
         
         # Dialog buttons
         button_box = QHBoxLayout()
-        self.save_btn = QPushButton("Save")
-        self.cancel_btn = QPushButton("Close")
+        self.save_btn = QPushButton(self.tr("Save"))
+        self.cancel_btn = QPushButton(self.tr("Close"))
         
         button_box.addStretch()
         button_box.addWidget(self.save_btn)

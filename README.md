@@ -51,6 +51,7 @@ MIT — voir [LICENSE](LICENSE)
 - **Langue** : Noms de classes/méthodes en anglais ; commentaires et messages utilisateur en français
 - **Nommage tables** : snake_case (commande, piece_extension, mouvement_stock)
 - **Pattern DB** : Préférer `db.execute(query, params)` à `db.conn.cursor()` directement
+- **DTO** : Les données DB (`RealDictRow`) sont propagées jusqu'aux vues. Dans un futur refactoring, introduire des dataclasses/Pydantic pour découpler le schéma DB de l'interface.
 - **i18n** : Toutes les chaînes UI via `self.tr()` ; dictionnaires FR/EN dans `APP/utils/i18n.py`
 - **Logging** : Module `logging` (config centralisée dans `APP/main.py`), pas de `print()`
 

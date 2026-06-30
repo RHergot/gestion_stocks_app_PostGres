@@ -89,11 +89,11 @@ class ReceptionDialog(QDialog):
         # Boutons
         button_layout = QHBoxLayout()
         
-        self.validate_btn = QPushButton("Validate reception")
+        self.validate_btn = QPushButton(self.tr("Validate reception"))
         self.validate_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; padding: 10px; }")
         self.validate_btn.clicked.connect(self.validate_reception)
         
-        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn = QPushButton(self.tr("Cancel"))
         self.cancel_btn.clicked.connect(self.reject)
         
         button_layout.addStretch()
