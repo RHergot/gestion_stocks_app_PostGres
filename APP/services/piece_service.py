@@ -1,4 +1,8 @@
 from APP.models.piece_repository import PieceRepository
+from APP.models.piece_unit_repository import PieceUnitRepository
+from APP.models.piece_category_repository import PieceCategoryRepository
+from APP.models.emplacement_repository import EmplacementRepository
+from APP.models.piece_statut_repository import PieceStatutRepository
 from APP.services.piece_extension_service import PieceExtensionService
 from APP.services.machine_service import MachineService
 from APP.services.mouvement_service import MouvementService
@@ -14,6 +18,35 @@ class PieceService:
         self.extension_service = PieceExtensionService(db)
         self.machine_service = MachineService(db)
         self.mouvement_service = MouvementService(db)
+        # Parent lists for name lookups — loaded lazily on first access
+        self._parent_unit_list = None
+        self._parent_category_list = None
+        self._parent_emplacement_list = None
+        self._parent_statut_list = None
+
+    @property
+    def parent_unit_list(self):
+        if self._parent_unit_list is None:
+            self._parent_unit_list = PieceUnitRepository(self.db).get_all_units()
+        return self._parent_unit_list
+
+    @property
+    def parent_category_list(self):
+        if self._parent_category_list is None:
+            self._parent_category_list = PieceCategoryRepository(self.db).get_all_categories()
+        return self._parent_category_list
+
+    @property
+    def parent_emplacement_list(self):
+        if self._parent_emplacement_list is None:
+            self._parent_emplacement_list = EmplacementRepository(self.db).get_all_emplacements()
+        return self._parent_emplacement_list
+
+    @property
+    def parent_statut_list(self):
+        if self._parent_statut_list is None:
+            self._parent_statut_list = PieceStatutRepository(self.db).get_all_statuts()
+        return self._parent_statut_list
 
     def get_all_pieces(self):
         return self.repo.get_all_pieces()
