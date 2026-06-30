@@ -6,24 +6,25 @@ class FabricantTableView(QWidget):
     def __init__(self, fabricant_service, parent=None):
         super().__init__(parent)
         self.fabricant_service = fabricant_service
-        self.setWindowTitle("Manufacturers")
+        self.setWindowTitle(self.tr("Manufacturers"))
         self.resize(800, 600)
         layout = QVBoxLayout()
         self.setGeometry(100, 100, 800, 600)
         self.table = QTableWidget(self)
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels([
-            "ID", "Name", "Contact", "Website", "Technical support"
+            self.tr("ID"), self.tr("Name"), self.tr("Contact"),
+            self.tr("Website"), self.tr("Technical support")
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         layout.addWidget(self.table)
 
         btn_layout = QHBoxLayout()
-        self.add_btn = QPushButton("Add", self)
-        self.edit_btn = QPushButton("Edit", self)
-        self.delete_btn = QPushButton("Delete", self)
-        self.refresh_btn = QPushButton("Refresh", self)
-        self.close_btn = QPushButton("Close", self)
+        self.add_btn = QPushButton(self.tr("Add"), self)
+        self.edit_btn = QPushButton(self.tr("Edit"), self)
+        self.delete_btn = QPushButton(self.tr("Delete"), self)
+        self.refresh_btn = QPushButton(self.tr("Refresh"), self)
+        self.close_btn = QPushButton(self.tr("Close"), self)
         btn_layout.addWidget(self.add_btn)
         btn_layout.addWidget(self.edit_btn)
         btn_layout.addWidget(self.delete_btn)
@@ -74,7 +75,8 @@ class FabricantTableView(QWidget):
     def edit_fabricant(self):
         fabricant = self.get_selected_fabricant()
         if not fabricant:
-            QMessageBox.warning(self, "No manufacturer selected", "Please select a manufacturer to edit.")
+            QMessageBox.warning(self, self.tr("No manufacturer selected"),
+                              self.tr("Please select a manufacturer to edit."))
             return
         dialog = FabricantDialog(self)
         dialog.nom.setText(fabricant["nom"])
@@ -92,9 +94,12 @@ class FabricantTableView(QWidget):
     def delete_fabricant(self):
         fabricant = self.get_selected_fabricant()
         if not fabricant:
-            QMessageBox.warning(self, "No manufacturer selected", "Please select a manufacturer to delete.")
+            QMessageBox.warning(self, self.tr("No manufacturer selected"),
+                              self.tr("Please select a manufacturer to delete."))
             return
-        confirm = QMessageBox.question(self, "Confirm deletion", f"Delete manufacturer '{fabricant['nom']}'?", QMessageBox.Yes | QMessageBox.No)
+        confirm = QMessageBox.question(self, self.tr("Confirm deletion"),
+            self.tr("Delete manufacturer '%s'?") % fabricant['nom'],
+            QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.fabricant_service.delete_fabricant(fabricant["id_fabricant"])
             self.refresh()

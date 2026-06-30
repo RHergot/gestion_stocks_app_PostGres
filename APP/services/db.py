@@ -1,33 +1,34 @@
 import os
+import logging
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
         self.conn = None
         # Charger les variables d'environnement depuis le .env à la racine du projet
         env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
-        print(f"Chargement du fichier .env depuis : {os.path.abspath(env_path)}")
+        logger.debug("Chargement du fichier .env depuis : %s", os.path.abspath(env_path))
         
         # Vérifier si le fichier .env existe
         if not os.path.exists(env_path):
-            print("ATTENTION: Le fichier .env n'existe pas à l'emplacement spécifié!")
+            logger.warning("Le fichier .env n'existe pas à l'emplacement spécifié!")
         else:
-            print("Fichier .env trouvé avec succès")
+            logger.debug("Fichier .env trouvé avec succès")
             
         # Charger les variables d'environnement
         load_dotenv(env_path, override=True)
         
-        # Afficher toutes les variables d'environnement chargées (pour débogage)
-        print("\nVariables d'environnement chargées :")
+        # Log des variables d'environnement chargées (mot de passe masqué)
         for key, value in os.environ.items():
             if key.startswith('POSTGRES_'):
                 if 'PASSWORD' in key.upper():
-                    print(f"{key} = ***")
+                    logger.debug("%s = ***", key)
                 else:
-                    print(f"{key} = {value}")
-        print()
+                    logger.debug("%s = %s", key, value)
         
         # Récupération des paramètres de connexion
         self.db_config = {
@@ -40,33 +41,24 @@ class Database:
 
     def connect(self):
         try:
-            # Afficher les paramètres de connexion (sans le mot de passe pour des raisons de sécurité)
-            print("\n" + "="*80)
-            print("Tentative de connexion à la base de données avec les paramètres :")
-            print(f"- Hôte: {self.db_config['host']}")
-            print(f"- Port: {self.db_config['port']}")
-            print(f"- Base de données: {self.db_config['dbname']}")
-            print(f"- Utilisateur: {self.db_config['user']}")
+            logger.info("Tentative de connexion à la base de données: hôte=%s port=%s db=%s user=%s",
+                        self.db_config['host'], self.db_config['port'],
+                        self.db_config['dbname'], self.db_config['user'])
             
             # Établir la connexion
             self.conn = psycopg2.connect(**self.db_config)
-            print("✅ Connexion à la base de données établie avec succès!")
-            print("="*80 + "\n")
+            logger.info("Connexion à la base de données établie avec succès")
             return self.conn
             
         except Exception as e:
-            print("\n" + "!"*80)
-            print("ERREUR: Impossible de se connecter à la base de données")
-            print(f"Détails: {str(e)}")
-            print("Vérifiez vos paramètres de connexion dans le fichier .env")
-            print("!"*80 + "\n")
+            logger.error("Impossible de se connecter à la base de données: %s", e)
             raise
 
     def close(self):
         if self.conn:
             self.conn.close()
             self.conn = None
-            print("Connexion à la base de données fermée")
+            logger.info("Connexion à la base de données fermée")
 
     def execute(self, query, params=None):
         try:
@@ -82,7 +74,7 @@ class Database:
                     return cur.fetchall()
                 return None
         except Exception as e:
-            print(f"\nErreur lors de l'exécution de la requête: {str(e)}")
+            logger.error("Erreur lors de l'exécution de la requête: %s", e)
             if self.conn:
                 self.conn.rollback()
             raise
@@ -90,4 +82,4 @@ class Database:
     def commit(self):
         if self.conn:
             self.conn.commit()
-            print("Transaction validée avec succès")
+            logger.debug("Transaction validée avec succès")

@@ -1,6 +1,8 @@
 from APP.services.db import Database
 from APP.models.emplacement_ext_repository import EmplacementExtRepository
 from typing import Dict, List, Optional
+import logging
+logger = logging.getLogger(__name__)
 
 class EmplacementExtService:
     """Service pour la gestion des extensions d'emplacements"""
@@ -38,7 +40,7 @@ class EmplacementExtService:
             return result
             
         except Exception as e:
-            print(f"[ERREUR] Impossible de récupérer l'emplacement complet {emplacement_id}: {e}")
+            logger.debug(f"[ERREUR] Impossible de récupérer l'emplacement complet {emplacement_id}: {e}")
             return {}
 
     def creer_ou_modifier_emplacement_ext(self, emplacement_id: int, data: Dict) -> bool:
@@ -53,7 +55,7 @@ class EmplacementExtService:
                 return self.repository.create_emplacement_ext(emplacement_id, data)
                 
         except Exception as e:
-            print(f"[ERREUR] Impossible de créer/modifier l'emplacement étendu {emplacement_id}: {e}")
+            logger.debug(f"[ERREUR] Impossible de créer/modifier l'emplacement étendu {emplacement_id}: {e}")
             return False
 
     def get_tous_emplacements_detail(self) -> List[Dict]:
@@ -61,7 +63,7 @@ class EmplacementExtService:
         try:
             return self.repository.get_all_emplacements_detail()
         except Exception as e:
-            print(f"[ERREUR] Impossible de récupérer les emplacements détaillés: {e}")
+            logger.debug(f"[ERREUR] Impossible de récupérer les emplacements détaillés: {e}")
             return []
 
     def get_emplacements_avec_capacite(self) -> List[Dict]:
@@ -69,7 +71,7 @@ class EmplacementExtService:
         try:
             return self.repository.get_emplacements_capacite()
         except Exception as e:
-            print(f"[ERREUR] Impossible de récupérer les capacités des emplacements: {e}")
+            logger.debug(f"[ERREUR] Impossible de récupérer les capacités des emplacements: {e}")
             return []
 
     def ajouter_stock_piece(self, emplacement_id: int, piece_id: int, 
@@ -84,7 +86,7 @@ class EmplacementExtService:
             )
             
         except Exception as e:
-            print(f"[ERREUR] Impossible d'ajouter le stock: {e}")
+            logger.debug(f"[ERREUR] Impossible d'ajouter le stock: {e}")
             return False
 
     def retirer_stock_piece(self, emplacement_id: int, piece_id: int, 
@@ -99,7 +101,7 @@ class EmplacementExtService:
             )
             
         except Exception as e:
-            print(f"[ERREUR] Impossible de retirer le stock: {e}")
+            logger.debug(f"[ERREUR] Impossible de retirer le stock: {e}")
             return False
 
     def transferer_stock(self, piece_id: int, emplacement_source_id: int, 
@@ -119,7 +121,7 @@ class EmplacementExtService:
             )
             
         except Exception as e:
-            print(f"[ERREUR] Impossible de transférer le stock: {e}")
+            logger.debug(f"[ERREUR] Impossible de transférer le stock: {e}")
             return False
 
     def get_stock_piece_par_emplacement(self, piece_id: int) -> List[Dict]:
@@ -127,7 +129,7 @@ class EmplacementExtService:
         try:
             return self.repository.get_piece_emplacements(piece_id)
         except Exception as e:
-            print(f"[ERREUR] Impossible de récupérer la répartition de la pièce {piece_id}: {e}")
+            logger.debug(f"[ERREUR] Impossible de récupérer la répartition de la pièce {piece_id}: {e}")
             return []
 
     def get_emplacements_libres(self, capacite_min: float = None) -> List[Dict]:
@@ -135,7 +137,7 @@ class EmplacementExtService:
         try:
             return self.repository.get_emplacements_libres(capacite_min)
         except Exception as e:
-            print(f"[ERREUR] Impossible de récupérer les emplacements libres: {e}")
+            logger.debug(f"[ERREUR] Impossible de récupérer les emplacements libres: {e}")
             return []
 
     def rechercher_piece(self, terme_recherche: str) -> List[Dict]:
@@ -146,7 +148,7 @@ class EmplacementExtService:
             
             return self.repository.rechercher_piece_dans_emplacements(terme_recherche.strip())
         except Exception as e:
-            print(f"[ERREUR] Impossible de rechercher la pièce '{terme_recherche}': {e}")
+            logger.debug(f"[ERREUR] Impossible de rechercher la pièce '{terme_recherche}': {e}")
             return []
 
     def get_statistiques_emplacement(self, emplacement_id: int) -> Dict:
@@ -154,7 +156,7 @@ class EmplacementExtService:
         try:
             return self.repository.get_statistiques_emplacement(emplacement_id)
         except Exception as e:
-            print(f"[ERREUR] Impossible de récupérer les statistiques de l'emplacement {emplacement_id}: {e}")
+            logger.debug(f"[ERREUR] Impossible de récupérer les statistiques de l'emplacement {emplacement_id}: {e}")
             return {}
 
     def valider_dimensions(self, longueur: float, hauteur: float, profondeur: float) -> bool:
@@ -214,7 +216,7 @@ class EmplacementExtService:
             return suggestions[:10]  # Limiter à 10 suggestions
             
         except Exception as e:
-            print(f"[ERREUR] Impossible de suggérer des emplacements pour la pièce {piece_id}: {e}")
+            logger.debug(f"[ERREUR] Impossible de suggérer des emplacements pour la pièce {piece_id}: {e}")
             return []
 
     def nettoyer_stocks_vides(self) -> int:
@@ -222,7 +224,7 @@ class EmplacementExtService:
         try:
             return self.repository.nettoyer_stocks_zero()
         except Exception as e:
-            print(f"[ERREUR] Impossible de nettoyer les stocks vides: {e}")
+            logger.debug(f"[ERREUR] Impossible de nettoyer les stocks vides: {e}")
             return 0
 
     def verifier_coherence_stock_global(self) -> List[Dict]:
@@ -258,5 +260,5 @@ class EmplacementExtService:
                 return results
                 
         except Exception as e:
-            print(f"[ERREUR] Impossible de vérifier la cohérence des stocks: {e}")
+            logger.debug(f"[ERREUR] Impossible de vérifier la cohérence des stocks: {e}")
             return []
