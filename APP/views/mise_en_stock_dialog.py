@@ -183,7 +183,7 @@ class MiseEnStockDialog(QDialog):
         return {
             'piece_id': piece_data['id_piece'] if piece_data else None,
             'quantite': self.quantity_spin.value(),
-            'emplacement_stockage_id': dest_data['id_emplacement'] if dest_data else None,
+            'emplacement_stockage_id': dest_data['id'] if dest_data else None,
             'reference': self.reference_edit.text().strip(),
             'commentaire': self.comment_edit.toPlainText().strip()
         }
