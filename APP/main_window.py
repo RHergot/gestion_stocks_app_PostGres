@@ -26,6 +26,7 @@ from APP.services.piece_unit_service import PieceUnitService
 from APP.views.piece_unit_table_view import PieceUnitTableView
 from APP.controllers.mouvement_controller import MouvementController
 from APP.views.mouvement_table_view import MouvementTableView
+from APP.views.warehouse_layout_view import WarehouseLayoutView
 from APP.services.db import Database
 from APP.services.rapport_service import RapportService
 
@@ -102,6 +103,11 @@ class MainWindow(QMainWindow):
         self.emplacement_table_view = EmplacementTableView(self.emplacement_service, self.db, parent=None)
         self.emplacement_table_view.show()
 
+    def show_warehouse_layout(self):
+        """Ouvre la vue graphique de l'entrepôt (Warehouse Layout)."""
+        self.warehouse_layout_view = WarehouseLayoutView(db=self.db)
+        self.warehouse_layout_view.show()
+
     def show_piece_categories(self):
         self.piece_category_table_view = PieceCategoryTableView(self.piece_category_service, parent=None)
         self.piece_category_table_view.show()
@@ -150,6 +156,9 @@ class MainWindow(QMainWindow):
         locations_action = QAction(self.tr("Locations"), self)
         locations_action.triggered.connect(self.show_emplacements)
         general_menu.addAction(locations_action)
+        warehouse_layout_action = QAction(self.tr("Warehouse Layout"), self)
+        warehouse_layout_action.triggered.connect(self.show_warehouse_layout)
+        general_menu.addAction(warehouse_layout_action)
         # 3) Parts, Orders, Movements menus
         # Menu Orders
         commandes_menu = menubar.addMenu(self.tr("Orders"))
