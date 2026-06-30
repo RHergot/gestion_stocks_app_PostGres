@@ -23,7 +23,7 @@ class Database:
         if not os.path.exists(env_path):
             logger.warning("Le fichier .env n'existe pas à l'emplacement spécifié!")
         else:
-            logger.debug("Fichier .env trouvé avec succès")
+            logger.debug("Fichier .env trouvé avec success")
             
         # Charger les variables d'environnement
         load_dotenv(env_path, override=True)
@@ -36,7 +36,7 @@ class Database:
                 else:
                     logger.debug("%s = %s", key, value)
         
-        # Récupération des paramètres de connexion
+        # Retrieval des paramètres de connexion
         self.db_config = {
             'host': os.getenv('POSTGRES_HOST', 'localhost'),
             'port': int(os.getenv('POSTGRES_PORT', '5432')),
@@ -53,7 +53,7 @@ class Database:
             
             # Établir la connexion
             self.conn = psycopg2.connect(**self.db_config)
-            logger.info("Connexion à la base de données établie avec succès")
+            logger.info("Connexion à la base de données établie avec success")
             return self.conn
             
         except Exception as e:
@@ -80,7 +80,7 @@ class Database:
                     return cur.fetchall()
                 return None
         except Exception as e:
-            logger.error("Erreur lors de l'exécution de la requête: %s", e)
+            logger.error("Error during l'exécution de la requête: %s", e)
             if self.conn:
                 self.conn.rollback()
             raise
@@ -88,4 +88,4 @@ class Database:
     def commit(self):
         if self.conn:
             self.conn.commit()
-            logger.debug("Transaction validée avec succès")
+            logger.debug("Transaction validée avec success")

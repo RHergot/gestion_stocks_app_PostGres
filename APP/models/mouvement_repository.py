@@ -36,7 +36,7 @@ class MouvementRepository:
             ''', (mouvement_id,))
             return cur.fetchone()
 
-    def get_mouvements_by_piece(self, piece_id: int, limit: int = 100) -> List[Dict]:
+    def get_mouvements_by_piece(self, piece_id: int, limit: int = 100, offset: int = 0) -> List[Dict]:
         """Récupère l'historique des mouvements pour une pièce"""
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute('''
@@ -45,19 +45,39 @@ class MouvementRepository:
                     SELECT reference FROM piece WHERE id_piece = %s
                 )
                 ORDER BY date_mouvement DESC
-                LIMIT %s;
-            ''', (piece_id, limit))
+                LIMIT %s OFFSET %s;
+            ''', (piece_id, limit, offset))
             return cur.fetchall()
 
-    def get_mouvements_by_date_range(self, date_debut: date, date_fin: date) -> List[Dict]:
+    def get_mouvements_by_date_range(self, date_debut: date, date_fin: date, limit: int = 1000, offset: int = 0) -> List[Dict]:
         """Récupère les mouvements dans une plage de dates"""
         with self.db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute('''
                 SELECT * FROM v_historique_mouvements
                 WHERE DATE(date_mouvement) BETWEEN %s AND %s
-                ORDER BY date_mouvement DESC;
-            ''', (date_debut, date_fin))
+                ORDER BY date_mouvement DESC
+                LIMIT %s OFFSET %s;
+            ''', (date_debut, date_fin, limit, offset))
             return cur.fetchall()
+
+    def count_mouvements(self, filtres: Dict = None) -> int:
+        """Compte le nombre total de mouvements (pour pagination)."""
+        with self.db.conn.cursor() as cur:
+            if filtres and 'piece_id' in filtres:
+                cur.execute(
+                    "SELECT COUNT(*) FROM v_historique_mouvements "
+                    "WHERE piece_reference IN (SELECT reference FROM piece WHERE id_piece = %s)",
+                    (filtres['piece_id'],)
+                )
+            elif filtres and 'date_debut' in filtres and 'date_fin' in filtres:
+                cur.execute(
+                    "SELECT COUNT(*) FROM v_historique_mouvements "
+                    "WHERE DATE(date_mouvement) BETWEEN %s AND %s",
+                    (filtres['date_debut'], filtres['date_fin'])
+                )
+            else:
+                cur.execute("SELECT COUNT(*) FROM v_historique_mouvements")
+            return cur.fetchone()[0]
 
     def get_mouvements_by_type(self, type_mouvement_id: int) -> List[Dict]:
         """Récupère les mouvements par type"""

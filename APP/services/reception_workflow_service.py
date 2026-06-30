@@ -60,12 +60,12 @@ class ReceptionWorkflowService:
                     statut_mouvement='EN_ATTENTE'  # Le mouvement est en attente de confirmation
                 )
                 
-                logger.info(f"Lot de réception créé: {lot_id}, Mouvement: {mouvement_id}")
+                logger.info(f"Lot de réception created: {lot_id}, Mouvement: {mouvement_id}")
             
             return lot_id
             
         except Exception as e:
-            logger.error(f"Erreur lors de la création du lot de réception: {e}")
+            logger.error(f"Error during la création du lot de réception: {e}")
             raise
 
     def mettre_en_stock(self, lot_id: int, emplacement_destination_id: int, 
@@ -129,7 +129,7 @@ class ReceptionWorkflowService:
             return True
             
         except Exception as e:
-            logger.error(f"Erreur lors de la mise en stock: {e}")
+            logger.error(f"Error during la mise en stock: {e}")
             raise
 
     def get_stock_en_reception(self) -> List[Dict]:
@@ -137,7 +137,7 @@ class ReceptionWorkflowService:
         try:
             return self.lot_repo.get_stock_reception_par_piece()
         except Exception as e:
-            logger.error(f"Erreur lors de la récupération du stock en réception: {e}")
+            logger.error(f"Error during la retrieval du stock en réception: {e}")
             return []
 
     def get_lots_en_attente(self) -> List[Dict]:
@@ -145,7 +145,7 @@ class ReceptionWorkflowService:
         try:
             return self.lot_repo.get_lots_en_attente_stockage()
         except Exception as e:
-            logger.error(f"Erreur lors de la récupération des lots en attente: {e}")
+            logger.error(f"Error during la retrieval des lots en attente: {e}")
             return []
 
     def valider_lot_pour_stockage(self, lot_id: int, utilisateur_id: int = None,
@@ -160,7 +160,7 @@ class ReceptionWorkflowService:
             return success
             
         except Exception as e:
-            logger.error(f"Erreur lors de la validation du lot {lot_id}: {e}")
+            logger.error(f"Error during la validation du lot {lot_id}: {e}")
             return False
 
     def confirmer_reception_lot(self, lot_id: int, utilisateur_id: int = None,
@@ -203,7 +203,7 @@ class ReceptionWorkflowService:
             return success
             
         except Exception as e:
-            logger.error(f"Erreur lors de la confirmation de la réception du lot {lot_id}: {e}")
+            logger.error(f"Error during la confirmation de la réception du lot {lot_id}: {e}")
             return False
 
     def annuler_reception_lot(self, lot_id: int, utilisateur_id: int = None,
@@ -246,7 +246,7 @@ class ReceptionWorkflowService:
             return success
             
         except Exception as e:
-            logger.error(f"Erreur lors de l'annulation de la réception du lot {lot_id}: {e}")
+            logger.error(f"Error during l'annulation de la réception du lot {lot_id}: {e}")
             return False
 
     def get_lots_en_attente_confirmation(self) -> List[Dict]:
@@ -279,7 +279,7 @@ class ReceptionWorkflowService:
                 return [dict(zip(columns, row)) for row in cur.fetchall()]
                 
         except Exception as e:
-            logger.error(f"Erreur lors de la récupération des lots en attente: {e}")
+            logger.error(f"Error during la retrieval des lots en attente: {e}")
             return []
 
     def get_dashboard_reception_detaille(self) -> Dict:
@@ -305,7 +305,7 @@ class ReceptionWorkflowService:
             return dashboard
             
         except Exception as e:
-            logger.error(f"Erreur lors de la génération du dashboard détaillé: {e}")
+            logger.error(f"Error during la génération du dashboard détaillé: {e}")
             return {}
 
     def mettre_en_quarantaine(self, lot_id: int, raison: str, utilisateur_id: int = None) -> bool:
@@ -320,7 +320,7 @@ class ReceptionWorkflowService:
             return success
             
         except Exception as e:
-            logger.error(f"Erreur lors de la mise en quarantaine du lot {lot_id}: {e}")
+            logger.error(f"Error during la mise en quarantaine du lot {lot_id}: {e}")
             return False
 
     def get_historique_lot(self, lot_id: int) -> Dict:
@@ -340,7 +340,7 @@ class ReceptionWorkflowService:
             }
             
         except Exception as e:
-            logger.error(f"Erreur lors de la récupération de l'historique du lot {lot_id}: {e}")
+            logger.error(f"Error during la retrieval de l'historique du lot {lot_id}: {e}")
             return {}
 
     def suggerer_emplacements_pour_stockage(self, piece_id: int, quantite: int) -> List[Dict]:
@@ -348,7 +348,7 @@ class ReceptionWorkflowService:
         try:
             return self.emplacement_service.suggerer_emplacement_pour_piece(piece_id, quantite)
         except Exception as e:
-            logger.error(f"Erreur lors de la suggestion d'emplacements: {e}")
+            logger.error(f"Error during la suggestion d'emplacements: {e}")
             return []
 
     def get_rapport_reception_stockage(self, date_debut: str = None, date_fin: str = None) -> Dict:
@@ -393,5 +393,5 @@ class ReceptionWorkflowService:
                 }
                 
         except Exception as e:
-            logger.error(f"Erreur lors de la génération du rapport: {e}")
+            logger.error(f"Error during la génération du rapport: {e}")
             return {}

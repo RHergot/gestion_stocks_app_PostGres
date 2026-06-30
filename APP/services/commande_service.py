@@ -20,7 +20,7 @@ COMMANDE_HEADER_KEYS = [
 ]
 
 def get_all_commandes_clean(db):
-    print("\n[DEBUG] Récupération des commandes depuis la base de données...")
+    print("\n[DEBUG] Retrieval des commandes depuis la base de données...")
     repo = CommandeRepository(db)
     commandes = repo.get_all_commandes()
     

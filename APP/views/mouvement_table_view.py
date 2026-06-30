@@ -14,6 +14,8 @@ class MouvementTableView(QWidget):
     def __init__(self, mouvement_controller: MouvementController, parent=None):
         super().__init__(parent)
         self.mouvement_controller = mouvement_controller
+        self._page = 0
+        self._page_size = 100
         self.setWindowTitle(self.tr("Stock Movements"))
         self.resize(1400, 700)
         
@@ -306,10 +308,20 @@ class MouvementTableView(QWidget):
         self.table.itemSelectionChanged.connect(self.on_selection_changed)
 
     def refresh_data(self):
-        """Refreshes data"""
+        """Refreshes data with pagination."""
         try:
-            # Charger les mouvements
-            mouvements = self.mouvement_controller.lister_mouvements()
+            # Charger les mouvements avec pagination
+            filtres = self._get_current_filters()
+            mouvements = self.mouvement_controller.lister_mouvements(
+                filtres, limit=self._page_size, offset=self._page * self._page_size
+            )
+            total = self.mouvement_controller.compter_mouvements(filtres)
+            total_pages = max(1, (total + self._page_size - 1) // self._page_size)
+            self.page_label.setText(
+                self.tr(f"Page {self._page + 1} / {total_pages} ({total} total)")
+            )
+            self.prev_btn.setEnabled(self._page > 0)
+            self.next_btn.setEnabled(self._page < total_pages - 1)
             self.populate_table(mouvements)
             
             # Charger les données pour les combos
@@ -321,6 +333,20 @@ class MouvementTableView(QWidget):
         except Exception as e:
             QMessageBox.critical(self, self.tr("Error"), 
                                self.tr(f"Error while loading data: {e}"))
+
+    def _get_current_filters(self):
+        """Retourne les filtres actifs ou None."""
+        # Pour l'instant, pas de filtres actifs dans la vue
+        return None
+
+    def _prev_page(self):
+        if self._page > 0:
+            self._page -= 1
+            self.refresh_data()
+
+    def _next_page(self):
+        self._page += 1
+        self.refresh_data()
 
     def populate_table(self, mouvements):
         """Fills the table with movements"""

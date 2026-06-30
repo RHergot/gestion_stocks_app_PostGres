@@ -20,26 +20,39 @@ class MouvementController:
 
     # === Actions principales ===
 
-    def lister_mouvements(self, filtres: Dict = None) -> List[Dict]:
-        """Liste les mouvements avec filtres optionnels"""
+    def lister_mouvements(self, filtres: Dict = None, limit: int = None, offset: int = 0) -> List[Dict]:
+        """Liste les mouvements avec filtres optionnels et pagination.
+
+        Args:
+            filtres: dict optionnel (piece_id, date_debut, date_fin)
+            limit: nombre max de résultats (None = tous)
+            offset: décalage pour pagination
+        """
         try:
             if not filtres:
-                return self.mouvement_service.get_all_mouvements()
-            
-            # Appliquer les filtres
+                return self.mouvement_service.get_all_mouvements(limit=limit, offset=offset)
+
             if 'piece_id' in filtres:
-                return self.mouvement_service.get_historique_piece(filtres['piece_id'])
-            
+                return self.mouvement_service.get_historique_piece(filtres['piece_id'], limit=limit, offset=offset)
+
             if 'date_debut' in filtres and 'date_fin' in filtres:
                 return self.mouvement_service.get_mouvements_periode(
-                    filtres['date_debut'], filtres['date_fin']
+                    filtres['date_debut'], filtres['date_fin'], limit=limit, offset=offset
                 )
-            
-            return self.mouvement_service.get_all_mouvements()
-            
+
+            return self.mouvement_service.get_all_mouvements(limit=limit, offset=offset)
+
         except Exception as e:
             self.logger.error(f"Erreur lors de la liste des mouvements: {e}")
             raise
+
+    def compter_mouvements(self, filtres: Dict = None) -> int:
+        """Compte le nombre total de mouvements (pour pagination)."""
+        try:
+            return self.mouvement_service.count_mouvements(filtres)
+        except Exception as e:
+            self.logger.error(f"Erreur lors du comptage des mouvements: {e}")
+            return 0
 
     def obtenir_mouvement(self, mouvement_id: int) -> Optional[Dict]:
         """Obtient un mouvement par son ID"""

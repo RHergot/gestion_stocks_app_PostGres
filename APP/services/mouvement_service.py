@@ -26,13 +26,17 @@ class MouvementService:
         """Récupère un mouvement par son ID"""
         return self.mouvement_repo.get_mouvement_by_id(mouvement_id)
 
-    def get_historique_piece(self, piece_id: int, limit: int = 100) -> List[Dict]:
+    def get_historique_piece(self, piece_id: int, limit: int = 100, offset: int = 0) -> List[Dict]:
         """Récupère l'historique des mouvements pour une pièce"""
-        return self.mouvement_repo.get_mouvements_by_piece(piece_id, limit)
+        return self.mouvement_repo.get_mouvements_by_piece(piece_id, limit, offset)
 
-    def get_mouvements_periode(self, date_debut: date, date_fin: date) -> List[Dict]:
+    def get_mouvements_periode(self, date_debut: date, date_fin: date, limit: int = 1000, offset: int = 0) -> List[Dict]:
         """Récupère les mouvements dans une période donnée"""
-        return self.mouvement_repo.get_mouvements_by_date_range(date_debut, date_fin)
+        return self.mouvement_repo.get_mouvements_by_date_range(date_debut, date_fin, limit, offset)
+
+    def count_mouvements(self, filtres: Dict = None) -> int:
+        """Compte le nombre total de mouvements (pour pagination)."""
+        return self.mouvement_repo.count_mouvements(filtres)
 
     def creer_mouvement_entree(self, piece_id: int, quantite: int, type_mouvement_id: int,
                               emplacement_destination_id: int = None, utilisateur_id: int = None,
@@ -72,11 +76,11 @@ class MouvementService:
             if emplacement_destination_id:
                 self._update_stock_emplacement_entree(emplacement_destination_id, piece_id, quantite, commentaire)
 
-            self.logger.info(f"Mouvement d'entrée créé: ID={mouvement_id}, Pièce={piece_id}, Quantité={quantite}")
+            self.logger.info(f"Mouvement d'entrée created: ID={mouvement_id}, Pièce={piece_id}, Quantité={quantite}")
             return mouvement_id
 
         except Exception as e:
-            self.logger.error(f"Erreur lors de la création du mouvement d'entrée: {e}")
+            self.logger.error(f"Error during la création du mouvement d'entrée: {e}")
             raise
 
     def creer_mouvement_sortie(self, piece_id: int, quantite: int, type_mouvement_id: int,
@@ -126,11 +130,11 @@ class MouvementService:
             if emplacement_source_id:
                 self._update_stock_emplacement_sortie(emplacement_source_id, piece_id, quantite, commentaire)
 
-            self.logger.info(f"Mouvement de sortie créé: ID={mouvement_id}, Pièce={piece_id}, Quantité={quantite}")
+            self.logger.info(f"Mouvement de sortie created: ID={mouvement_id}, Pièce={piece_id}, Quantité={quantite}")
             return mouvement_id
 
         except Exception as e:
-            self.logger.error(f"Erreur lors de la création du mouvement de sortie: {e}")
+            self.logger.error(f"Error during la création du mouvement de sortie: {e}")
             raise
 
     def creer_mouvement_transfert(self, piece_id: int, quantite: int,
@@ -197,7 +201,7 @@ class MouvementService:
 
             mouvement_entree_id = self.mouvement_repo.add_mouvement(mouvement_entree_data)
 
-            self.logger.info(f"Transfert créé: Sortie={mouvement_sortie_id}, Entrée={mouvement_entree_id}")
+            self.logger.info(f"Transfert created: Sortie={mouvement_sortie_id}, Entrée={mouvement_entree_id}")
             return [mouvement_sortie_id, mouvement_entree_id]
 
         except Exception as e:
@@ -246,7 +250,7 @@ class MouvementService:
             return mouvement_id
 
         except Exception as e:
-            self.logger.error(f"Erreur lors de l'ajustement d'inventaire: {e}")
+            self.logger.error(f"Error during l'ajustement d'inventaire: {e}")
             raise
 
     def annuler_mouvement(self, mouvement_id: int, utilisateur_id: int = None,
@@ -298,7 +302,7 @@ class MouvementService:
             return mouvement_annulation_id
 
         except Exception as e:
-            self.logger.error(f"Erreur lors de l'annulation du mouvement: {e}")
+            self.logger.error(f"Error during l'annulation du mouvement: {e}")
             raise
 
     # === Gestion des types de mouvement ===
@@ -393,7 +397,7 @@ class MouvementService:
             stock_item = self.emplacement_ext_repo.get_emplacement_stock_item(emplacement_id, piece_id)
             return stock_item['quantite'] if stock_item else 0
         except Exception as e:
-            self.logger.error(f"Erreur lors de la récupération du stock emplacement: {e}")
+            self.logger.error(f"Error during la retrieval du stock emplacement: {e}")
             return 0
 
     def _update_stock_emplacement_entree(self, emplacement_id: int, piece_id: int, 
@@ -403,9 +407,9 @@ class MouvementService:
             self.emplacement_ext_repo.ajouter_stock_emplacement(
                 emplacement_id, piece_id, quantite, commentaire
             )
-            self.logger.debug(f"Stock emplacement mis à jour: +{quantite} pour pièce {piece_id} dans emplacement {emplacement_id}")
+            self.logger.debug(f"Stock emplacement updated: +{quantite} pour pièce {piece_id} dans emplacement {emplacement_id}")
         except Exception as e:
-            self.logger.error(f"Erreur lors de la mise à jour du stock emplacement (entrée): {e}")
+            self.logger.error(f"Error during la mise à jour du stock emplacement (entrée): {e}")
             raise
 
     def _update_stock_emplacement_sortie(self, emplacement_id: int, piece_id: int, 
@@ -415,9 +419,9 @@ class MouvementService:
             self.emplacement_ext_repo.retirer_stock_emplacement(
                 emplacement_id, piece_id, quantite, commentaire
             )
-            self.logger.debug(f"Stock emplacement mis à jour: -{quantite} pour pièce {piece_id} dans emplacement {emplacement_id}")
+            self.logger.debug(f"Stock emplacement updated: -{quantite} pour pièce {piece_id} dans emplacement {emplacement_id}")
         except Exception as e:
-            self.logger.error(f"Erreur lors de la mise à jour du stock emplacement (sortie): {e}")
+            self.logger.error(f"Error during la mise à jour du stock emplacement (sortie): {e}")
             raise
 
     # === Nouvelles méthodes pour la gestion des emplacements ===
@@ -427,7 +431,7 @@ class MouvementService:
         try:
             return self.emplacement_ext_repo.get_stock_by_emplacement(emplacement_id)
         except Exception as e:
-            self.logger.error(f"Erreur lors de la récupération du stock par emplacement: {e}")
+            self.logger.error(f"Error during la retrieval du stock par emplacement: {e}")
             return []
 
     def get_emplacements_piece(self, piece_id: int) -> List[Dict]:
@@ -435,7 +439,7 @@ class MouvementService:
         try:
             return self.emplacement_ext_repo.get_piece_emplacements(piece_id)
         except Exception as e:
-            self.logger.error(f"Erreur lors de la récupération des emplacements pour la pièce: {e}")
+            self.logger.error(f"Error during la retrieval des emplacements pour la pièce: {e}")
             return []
 
     def suggerer_emplacement_pour_entree(self, piece_id: int, quantite: int) -> List[Dict]:
@@ -445,7 +449,7 @@ class MouvementService:
             service = EmplacementExtService(self.db)
             return service.suggerer_emplacement_pour_piece(piece_id, quantite)
         except Exception as e:
-            self.logger.error(f"Erreur lors de la suggestion d'emplacements: {e}")
+            self.logger.error(f"Error during la suggestion d'emplacements: {e}")
             return []
 
     def verifier_coherence_stocks(self) -> List[Dict]:
@@ -455,7 +459,7 @@ class MouvementService:
             service = EmplacementExtService(self.db)
             return service.verifier_coherence_stock_global()
         except Exception as e:
-            self.logger.error(f"Erreur lors de la vérification de cohérence: {e}")
+            self.logger.error(f"Error during la vérification de cohérence: {e}")
             return []
 
     def corriger_incoherence_stock(self, piece_id: int, forcer_stock_global: bool = True) -> bool:
@@ -475,14 +479,14 @@ class MouvementService:
             
             return True
         except Exception as e:
-            self.logger.error(f"Erreur lors de la correction d'incohérence: {e}")
+            self.logger.error(f"Error during la correction d'incohérence: {e}")
             return False
 
     def vider_piece_de_tous_emplacements(self, piece_id: int, utilisateur_id: int = None,
                                          commentaire: str = None) -> int:
         """Vide la pièce de tous les emplacements en générant des sorties d'inventaire par emplacement.
 
-        Retourne le nombre de mouvements créés.
+        Retourne le nombre de mouvements createds.
         """
         try:
             # Récupérer les emplacements où se trouve la pièce
@@ -602,11 +606,11 @@ class MouvementService:
             # NE PAS mettre à jour le stock de la pièce (réception seulement)
             # NE PAS mettre à jour le stock par emplacement (réception seulement)
 
-            self.logger.info(f"Mouvement de réception créé: ID={mouvement_id}, Pièce={piece_id}, Quantité={quantite}, Statut={statut_mouvement}")
+            self.logger.info(f"Mouvement de réception created: ID={mouvement_id}, Pièce={piece_id}, Quantité={quantite}, Statut={statut_mouvement}")
             return mouvement_id
 
         except Exception as e:
-            self.logger.error(f"Erreur lors de la création du mouvement de réception: {e}")
+            self.logger.error(f"Error during la création du mouvement de réception: {e}")
             raise
 
     def confirmer_mouvement_reception(self, mouvement_id: int, utilisateur_id: int = None,
@@ -623,12 +627,12 @@ class MouvementService:
                 self.db.conn.commit()
                 
                 if result:
-                    self.logger.info(f"Mouvement {mouvement_id} confirmé avec succès")
+                    self.logger.info(f"Mouvement {mouvement_id} confirmé avec success")
                 
                 return result
                 
         except Exception as e:
-            self.logger.error(f"Erreur lors de la confirmation du mouvement {mouvement_id}: {e}")
+            self.logger.error(f"Error during la confirmation du mouvement {mouvement_id}: {e}")
             self.db.conn.rollback()
             raise
 
@@ -646,12 +650,12 @@ class MouvementService:
                 self.db.conn.commit()
                 
                 if result:
-                    self.logger.info(f"Mouvement {mouvement_id} annulé avec succès")
+                    self.logger.info(f"Mouvement {mouvement_id} annulé avec success")
                 
                 return result
                 
         except Exception as e:
-            self.logger.error(f"Erreur lors de l'annulation du mouvement {mouvement_id}: {e}")
+            self.logger.error(f"Error during l'annulation du mouvement {mouvement_id}: {e}")
             self.db.conn.rollback()
             raise
 
@@ -669,7 +673,7 @@ class MouvementService:
                 return [dict(zip(columns, row)) for row in cur.fetchall()]
                 
         except Exception as e:
-            self.logger.error(f"Erreur lors de la récupération des mouvements en attente: {e}")
+            self.logger.error(f"Error during la retrieval des mouvements en attente: {e}")
             return []
 
     def get_dashboard_reception(self) -> Dict:
@@ -688,5 +692,5 @@ class MouvementService:
                 return dashboard
                 
         except Exception as e:
-            self.logger.error(f"Erreur lors de la récupération du dashboard: {e}")
+            self.logger.error(f"Error during la retrieval du dashboard: {e}")
             return {}

@@ -125,7 +125,7 @@ class PieceService:
             "mouvement_stock": 0,
             "reception_lot": 0,
             # "emplacement_stock": 0,  # en cascade, informatif seulement
-            # "piece_extension": 0,     # supprimé avant, informatif seulement
+            # "piece_extension": 0,     # deleted avant, informatif seulement
         }
         with self.db.conn.cursor() as cur:
             # Mouvement de stock (bloquant)
@@ -140,7 +140,7 @@ class PieceService:
             # cur.execute("SELECT COUNT(*) FROM emplacement_stock WHERE piece_id = %s;", (id_piece,))
             # counts["emplacement_stock"] = cur.fetchone()[0]
 
-            # Informative only (devrait être 0 car supprimé par service avant delete)
+            # Informative only (devrait être 0 car deleted par service avant delete)
             # cur.execute("SELECT COUNT(*) FROM piece_extension WHERE id_piece = %s;", (id_piece,))
             # counts["piece_extension"] = cur.fetchone()[0]
 
