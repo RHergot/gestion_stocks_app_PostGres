@@ -47,6 +47,11 @@ include = ["APP*"]
   "**/*.sql",  # SQL schemas/queries
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = "-v --tb=short"
+
 # OS-specific notes:
 # - Windows: ensure MSVC (Build Tools) installed for Cython builds
 # - Linux: apt install build-essential python3-dev (or similar)

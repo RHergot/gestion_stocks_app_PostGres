@@ -12,6 +12,7 @@ __pycache__/
 # Environnements virtuels
 venv/
 env/
+.venv/
 
 # Fichiers de configuration IDE
 .idea/
